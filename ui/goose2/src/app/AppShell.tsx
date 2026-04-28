@@ -50,7 +50,7 @@ const SIDEBAR_DEFAULT_WIDTH = 240;
 const SIDEBAR_MIN_WIDTH = 180;
 const SIDEBAR_MAX_WIDTH = 380;
 const SIDEBAR_SNAP_COLLAPSE_THRESHOLD = 100;
-const SIDEBAR_COLLAPSED_WIDTH = 48;
+const SIDEBAR_COLLAPSED_WIDTH = 0;
 const SETTINGS_SECTIONS = new Set<SectionId>([
   "appearance",
   "providers",
@@ -698,15 +698,17 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
           chatSessionTitle={
             activeView === "chat" ? activeSession?.title : undefined
           }
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={toggleSidebar}
         />
 
         <div className="flex flex-1 min-h-0 overflow-hidden">
           <div
-            className="flex-shrink-0 h-full py-3 pl-3"
+            className="flex-shrink-0 h-full overflow-hidden"
             style={{
-              width: sidebarCollapsed
-                ? SIDEBAR_COLLAPSED_WIDTH + 12
-                : sidebarWidth + 12,
+              width: sidebarCollapsed ? 0 : sidebarWidth + 12,
+              paddingTop: 12,
+              paddingLeft: 12,
               transition: isResizing ? "none" : "width 200ms ease-out",
             }}
           >
@@ -714,7 +716,6 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
               collapsed={sidebarCollapsed}
               width={sidebarWidth}
               isResizing={isResizing}
-              onCollapse={toggleSidebar}
               onNavigate={handleNavigate}
               onNewChatInProject={handleNewChatInProject}
               onNewChat={() => {
@@ -737,14 +738,16 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
             />
           </div>
 
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: drag handle for sidebar resize */}
-          <div
-            onMouseDown={handleResizeStart}
-            onDoubleClick={handleResizeDoubleClick}
-            className="flex-shrink-0 w-2 h-full cursor-col-resize group flex items-center justify-center"
-          >
-            <div className="w-px h-8 rounded-full bg-transparent group-hover:bg-border transition-colors" />
-          </div>
+          {!sidebarCollapsed && (
+            // biome-ignore lint/a11y/noStaticElementInteractions: drag handle for sidebar resize
+            <div
+              onMouseDown={handleResizeStart}
+              onDoubleClick={handleResizeDoubleClick}
+              className="flex-shrink-0 w-2 h-full cursor-col-resize group flex items-center justify-center"
+            >
+              <div className="w-px h-8 rounded-full bg-transparent group-hover:bg-border transition-colors" />
+            </div>
+          )}
 
           <main className="min-h-0 min-w-0 flex-1">
             {children ?? (

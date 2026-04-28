@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  IconLayoutSidebar,
-  IconLayoutSidebarFilled,
-} from "@tabler/icons-react";
 import { BookOpen, Bot, History, Home, Search } from "lucide-react";
 import { getDisplaySessionTitle } from "@/features/chat/lib/sessionTitle";
 import { GooseIcon } from "@/shared/ui/icons/GooseIcon";
@@ -18,7 +14,6 @@ import {
 import { isSessionRunning } from "@/features/chat/lib/sessionActivity";
 import { useAgentStore } from "@/features/agents/stores/agentStore";
 import { useProjectStore } from "@/features/projects/stores/projectStore";
-import { Button } from "@/shared/ui/button";
 import { useSessionSearch } from "@/features/sessions/hooks/useSessionSearch";
 import { SidebarProjectsSection } from "./SidebarProjectsSection";
 import { SidebarSearchResults } from "./SidebarSearchResults";
@@ -28,7 +23,6 @@ interface SidebarProps {
   collapsed: boolean;
   width?: number;
   isResizing?: boolean;
-  onCollapse: () => void;
   onNewChatInProject?: (projectId: string) => void;
   onNewChat?: () => void;
   onCreateProject?: () => void;
@@ -57,7 +51,6 @@ export function Sidebar({
   collapsed,
   width = 240,
   isResizing = false,
-  onCollapse,
   onNewChatInProject,
   onNewChat,
   onCreateProject,
@@ -297,7 +290,7 @@ export function Sidebar({
         !isResizing && "transition-[width] duration-300 ease-in-out",
         className,
       )}
-      style={{ width: collapsed ? 54 : width }}
+      style={{ width }}
     >
       <div
         className="flex h-full flex-col overflow-hidden rounded-chrome bg-[var(--surface-chrome)] backdrop-blur-md [--muted-foreground:var(--text-muted-alex)]"
@@ -305,33 +298,8 @@ export function Sidebar({
           WebkitBackdropFilter: "blur(12px)",
         }}
       >
-        <div
-          className={cn(
-            "flex-shrink-0 pt-3",
-            collapsed ? "px-1.5 pb-1.5" : "px-3 pb-1",
-          )}
-        >
-          <div
-            className={cn(
-              "flex items-center",
-              collapsed ? "justify-center" : "justify-between",
-            )}
-          >
-            <GooseIcon className="text-foreground" />
-            {!collapsed && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                onClick={onCollapse}
-                className="text-muted-foreground hover:text-foreground"
-                aria-label={t("actions.collapse")}
-                title={t("actions.collapse")}
-              >
-                <IconLayoutSidebarFilled className="size-4" />
-              </Button>
-            )}
-          </div>
+        <div className="flex-shrink-0 px-3 pt-3 pb-1">
+          <GooseIcon className="text-foreground" />
         </div>
 
         <nav
@@ -339,7 +307,7 @@ export function Sidebar({
           className="relative flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-1.5 py-1 pt-1.5 scrollbar-none"
           onMouseLeave={onNavMouseLeave}
         >
-          {currentRect && !collapsed && (
+          {currentRect && (
             <div
               className="absolute left-1.5 right-1.5 rounded-lg bg-accent/50 pointer-events-none z-0"
               style={{
@@ -354,52 +322,30 @@ export function Sidebar({
           )}
 
           <div className="relative z-10 space-y-0.5">
-            {collapsed && (
-              <button
-                type="button"
-                onClick={onCollapse}
-                title={t("actions.expand")}
-                className="flex w-full items-center gap-2.5 rounded-md p-3 text-[13px] text-muted-foreground transition-colors duration-200 hover:text-foreground"
-                aria-label={t("actions.expand")}
-              >
-                <IconLayoutSidebar className="size-4 flex-shrink-0" />
-                <span className="sr-only">{t("actions.expand")}</span>
-              </button>
-            )}
-
-            <div
-              className={cn(
-                "mb-4 flex items-center w-full rounded-md transition-all duration-300 ease-out",
-                collapsed
-                  ? "justify-center p-3 text-muted-foreground"
-                  : "gap-2 border-b border-[var(--surface-button)] px-2.5 py-1.5 text-[var(--text-body-alex)] text-muted-foreground hover:text-foreground hover:bg-transparent",
-              )}
-            >
+            <div className="mb-4 flex items-center w-full rounded-md gap-2 border-b border-[var(--surface-button)] px-2.5 py-1.5 text-[var(--text-body-alex)] text-muted-foreground hover:text-foreground hover:bg-transparent">
               <Search className="size-3.5 flex-shrink-0 text-placeholder" />
-              {!collapsed && (
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  enterKeyHint="search"
-                  value={sidebarSearch.query}
-                  onChange={(e) => sidebarSearch.setQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      void sidebarSearch.search();
-                    }
-                  }}
-                  placeholder={t("search.placeholder")}
-                  className={cn(
-                    "focus-override appearance-none bg-transparent border-none text-xs flex-1 min-w-0 placeholder:text-placeholder outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
-                    labelTransition,
-                    labelVisible
-                      ? "opacity-100 w-auto"
-                      : "opacity-0 w-0 overflow-hidden",
-                  )}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              )}
+              <input
+                ref={searchInputRef}
+                type="text"
+                enterKeyHint="search"
+                value={sidebarSearch.query}
+                onChange={(e) => sidebarSearch.setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    void sidebarSearch.search();
+                  }
+                }}
+                placeholder={t("search.placeholder")}
+                className={cn(
+                  "focus-override appearance-none bg-transparent border-none text-xs flex-1 min-w-0 placeholder:text-placeholder outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
+                  labelTransition,
+                  labelVisible
+                    ? "opacity-100 w-auto"
+                    : "opacity-0 w-0 overflow-hidden",
+                )}
+                onClick={(e) => e.stopPropagation()}
+              />
             </div>
 
             <button
@@ -408,7 +354,6 @@ export function Sidebar({
               data-testid="nav-home"
               onClick={() => onNavigate?.("home")}
               onMouseEnter={onItemMouseEnter}
-              title={collapsed ? t("navigation.home") : undefined}
               aria-label={t("navigation.home")}
               className={cn(
                 "flex items-center w-full text-[13px] font-light transition-colors duration-200 rounded-md",
@@ -444,7 +389,6 @@ export function Sidebar({
                   type="button"
                   onClick={() => onNavigate?.(item.id)}
                   onMouseEnter={onItemMouseEnter}
-                  title={collapsed ? item.label : undefined}
                   className={cn(
                     "flex items-center w-full text-[13px] font-light transition-colors duration-200 rounded-md",
                     "gap-2 px-3 py-2",
@@ -480,70 +424,67 @@ export function Sidebar({
             })}
           </div>
 
-          {!collapsed &&
-            (sidebarSearch.submittedQuery ? (
-              <div className="relative z-10 space-y-2">
-                {sidebarSearch.error && (
-                  <p className="px-1 text-xs text-danger">
-                    {t("search.error")}
-                  </p>
+          {sidebarSearch.submittedQuery ? (
+            <div className="relative z-10 space-y-2">
+              {sidebarSearch.error && (
+                <p className="px-1 text-xs text-danger">{t("search.error")}</p>
+              )}
+
+              {sidebarSearch.isSearching &&
+                sidebarSearch.results.length === 0 && (
+                  <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
+                    {t("search.searching")}
+                  </div>
                 )}
 
-                {sidebarSearch.isSearching &&
-                  sidebarSearch.results.length === 0 && (
-                    <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
-                      {t("search.searching")}
-                    </div>
-                  )}
-
-                {(!sidebarSearch.isSearching ||
-                  sidebarSearch.results.length > 0) && (
-                  <SidebarSearchResults
-                    results={sidebarSearch.results}
-                    activeSessionId={activeSessionId}
-                    onSelectResult={(sessionId, messageId) => {
-                      if (messageId) {
-                        onSelectSearchResult?.(
-                          sessionId,
-                          messageId,
-                          sidebarSearch.submittedQuery,
-                        );
-                        return;
-                      }
-                      onSelectSession?.(sessionId);
-                    }}
-                    getPersonaName={sidebarResolvers.getPersonaName}
-                    getProjectName={sidebarResolvers.getProjectName}
-                  />
-                )}
-              </div>
-            ) : (
-              <SidebarProjectsSection
-                projects={projects}
-                projectSessions={projectSessions}
-                expandedProjects={expandedProjects}
-                toggleProject={toggleProject}
-                collapsed={collapsed}
-                labelTransition={labelTransition}
-                labelVisible={labelVisible}
-                activeSessionId={activeSessionId}
-                activeProjectId={activeProjectId}
-                onNavigate={onNavigate}
-                onSelectSession={onSelectSession}
-                onNewChatInProject={onNewChatInProject}
-                onNewChat={onNewChat}
-                onCreateProject={onCreateProject}
-                onEditProject={onEditProject}
-                onArchiveProject={onArchiveProject}
-                onArchiveChat={onArchiveChat}
-                onRenameChat={onRenameChat}
-                onMoveToProject={onMoveToProject}
-                onReorderProject={onReorderProject}
-                onItemMouseEnter={onItemMouseEnter}
-                activeSessionRefCallback={activeSessionRefCallback}
-                activeProjectRefCallback={activeProjectRefCallback}
-              />
-            ))}
+              {(!sidebarSearch.isSearching ||
+                sidebarSearch.results.length > 0) && (
+                <SidebarSearchResults
+                  results={sidebarSearch.results}
+                  activeSessionId={activeSessionId}
+                  onSelectResult={(sessionId, messageId) => {
+                    if (messageId) {
+                      onSelectSearchResult?.(
+                        sessionId,
+                        messageId,
+                        sidebarSearch.submittedQuery,
+                      );
+                      return;
+                    }
+                    onSelectSession?.(sessionId);
+                  }}
+                  getPersonaName={sidebarResolvers.getPersonaName}
+                  getProjectName={sidebarResolvers.getProjectName}
+                />
+              )}
+            </div>
+          ) : (
+            <SidebarProjectsSection
+              projects={projects}
+              projectSessions={projectSessions}
+              expandedProjects={expandedProjects}
+              toggleProject={toggleProject}
+              collapsed={collapsed}
+              labelTransition={labelTransition}
+              labelVisible={labelVisible}
+              activeSessionId={activeSessionId}
+              activeProjectId={activeProjectId}
+              onNavigate={onNavigate}
+              onSelectSession={onSelectSession}
+              onNewChatInProject={onNewChatInProject}
+              onNewChat={onNewChat}
+              onCreateProject={onCreateProject}
+              onEditProject={onEditProject}
+              onArchiveProject={onArchiveProject}
+              onArchiveChat={onArchiveChat}
+              onRenameChat={onRenameChat}
+              onMoveToProject={onMoveToProject}
+              onReorderProject={onReorderProject}
+              onItemMouseEnter={onItemMouseEnter}
+              activeSessionRefCallback={activeSessionRefCallback}
+              activeProjectRefCallback={activeProjectRefCallback}
+            />
+          )}
         </nav>
       </div>
     </div>
