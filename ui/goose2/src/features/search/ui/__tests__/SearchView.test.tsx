@@ -74,7 +74,9 @@ describe("SearchView", () => {
       />,
     );
 
-    expect(screen.getByLabelText(/universal search/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/universal search/i)).toHaveStyle({
+      top: "calc(50% - 90px)",
+    });
     expect(screen.queryByText("Extensions")).not.toBeInTheDocument();
   });
 

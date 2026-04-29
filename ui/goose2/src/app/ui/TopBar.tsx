@@ -55,7 +55,7 @@ export function TopBar({
 
   return (
     <header
-      className={cn("flex h-16 items-center gap-2 pl-20 pr-3", className)}
+      className={cn("flex h-14 items-center gap-2 pl-20 pr-3", className)}
       data-tauri-drag-region
     >
       {onToggleSidebar && (
@@ -64,7 +64,7 @@ export function TopBar({
           variant="ghost"
           size="icon"
           onClick={onToggleSidebar}
-          className="-translate-y-[3px] text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground"
           aria-label={toggleLabel}
           title={toggleLabel}
         >
@@ -77,7 +77,7 @@ export function TopBar({
           variant="ghost"
           size="icon"
           onClick={() => onNavigate("search")}
-          className="-translate-y-[3px] text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground"
           aria-label={tCommon("actions.search")}
           title={tCommon("actions.search")}
         >
@@ -85,8 +85,9 @@ export function TopBar({
         </Button>
       )}
       <h1
-        className="font-sans text-[24px] leading-[0.96] tracking-[-0.04em] text-[var(--text-title-alex)]"
+        className="font-sans text-[24px] font-light leading-[0.96] tracking-[-0.04em] text-[var(--text-title-alex)]"
         data-tauri-drag-region
+        style={{ fontFamily: "var(--font-sans-alex)" }}
       >
         {/* i18n-check-ignore: placeholder for dynamic project title — will be replaced when Projects page ships */}
         Tulsi's World

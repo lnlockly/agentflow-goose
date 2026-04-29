@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
-import type { ProviderInventoryEntryDto } from "@aaif/goose-sdk";
 import { ArrowUp, Check, ChevronDown, Mic, Plus, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAgentStore } from "@/features/agents/stores/agentStore";
 import { useVoiceDictation } from "@/features/chat/hooks/useVoiceDictation";
-import { resolveSessionModelPreference } from "@/features/chat/lib/sessionModelPreference";
+import { getStoredModelPreference } from "@/features/chat/lib/modelPreferences";
+import type { ModelOption } from "@/features/chat/types";
 import { useProjectStore } from "@/features/projects/stores/projectStore";
 import { getProviderInventory } from "@/features/providers/api/inventory";
+import { useProviderInventory } from "@/features/providers/hooks/useProviderInventory";
+import { resolveAgentProviderCatalogIdStrict } from "@/features/providers/providerCatalog";
 import { useProviderInventoryStore } from "@/features/providers/stores/providerInventoryStore";
+import { getClient } from "@/shared/api/acpConnection";
 import {
   inspectAttachmentPaths,
   readImageAttachment,
@@ -52,6 +55,9 @@ interface ModelGroup {
 }
 
 const PLACEHOLDER = "Start a conversation";
+const GOOSE_PROVIDER_CONFIG_KEY = "GOOSE_PROVIDER";
+const GOOSE_MODEL_CONFIG_KEY = "GOOSE_MODEL";
+const MODEL_ALIAS_IDS = new Set(["current", "default"]);
 
 function normalizeDialogSelection(
   selected: string | string[] | null,
@@ -75,93 +81,102 @@ function getAttachmentPathKey(path?: string) {
   return getPlatform() === "linux" ? path : path.toLowerCase();
 }
 
-function getProviderName(entry: ProviderInventoryEntryDto) {
-  return entry.providerName || formatProviderLabel(entry.providerId);
+function getModelName(model: ModelOption) {
+  return model.displayName ?? model.name ?? model.id;
 }
 
-function getSortedModels(entry: ProviderInventoryEntryDto): ModelSelection[] {
-  return [...entry.models]
-    .sort((left, right) => {
-      if (left.recommended !== right.recommended) {
-        return left.recommended ? -1 : 1;
-      }
-
-      return compareLabels(left.name, right.name);
-    })
-    .map((model) => ({
-      providerId: entry.providerId,
-      providerName: getProviderName(entry),
-      modelId: model.id,
-      modelName: model.name,
-    }));
+function isModelAlias(modelId?: string | null): boolean {
+  return modelId != null && MODEL_ALIAS_IDS.has(modelId);
 }
 
-function getPreferredModel(entry: ProviderInventoryEntryDto) {
-  return getSortedModels(entry)[0] ?? null;
+function modelOptionToSelection(
+  model: ModelOption,
+  fallbackProviderId: string,
+): ModelSelection {
+  const providerId = model.providerId ?? fallbackProviderId;
+  return {
+    providerId,
+    providerName: model.providerName ?? formatProviderLabel(providerId),
+    modelId: model.id,
+    modelName: getModelName(model),
+  };
 }
 
 function buildModelGroups(
-  providerInventoryEntries: Map<string, ProviderInventoryEntryDto>,
+  models: ModelOption[],
+  fallbackProviderId: string,
 ): ModelGroup[] {
-  return [...providerInventoryEntries.values()]
-    .filter((entry) => entry.models.length > 0)
+  const recommendedByProviderAndModel = new Map<string, boolean>();
+  const groups = new Map<string, ModelGroup>();
+
+  for (const model of models) {
+    const selection = modelOptionToSelection(model, fallbackProviderId);
+    recommendedByProviderAndModel.set(
+      `${selection.providerId}:${selection.modelId}`,
+      model.recommended ?? false,
+    );
+
+    const group = groups.get(selection.providerId);
+    if (group) {
+      group.models.push(selection);
+    } else {
+      groups.set(selection.providerId, {
+        providerId: selection.providerId,
+        providerName: selection.providerName,
+        models: [selection],
+      });
+    }
+  }
+
+  return [...groups.values()]
+    .map((group) => ({
+      ...group,
+      models: group.models.sort((left, right) => {
+        const leftRecommended =
+          recommendedByProviderAndModel.get(
+            `${left.providerId}:${left.modelId}`,
+          ) ?? false;
+        const rightRecommended =
+          recommendedByProviderAndModel.get(
+            `${right.providerId}:${right.modelId}`,
+          ) ?? false;
+
+        if (leftRecommended !== rightRecommended) {
+          return leftRecommended ? -1 : 1;
+        }
+
+        return compareLabels(left.modelName, right.modelName);
+      }),
+    }))
     .sort((left, right) =>
-      compareLabels(getProviderName(left), getProviderName(right)),
-    )
-    .map((entry) => ({
-      providerId: entry.providerId,
-      providerName: getProviderName(entry),
-      models: getSortedModels(entry),
-    }));
+      compareLabels(left.providerName, right.providerName),
+    );
 }
 
-function buildDefaultModelSelection(
-  selectedProvider: string,
-  providerInventoryEntries: Map<string, ProviderInventoryEntryDto>,
+function findMatchingModel(
+  models: ModelOption[],
+  modelId: string,
+  providerId?: string | null,
+) {
+  return (
+    models.find(
+      (model) =>
+        model.id === modelId &&
+        (!providerId || !model.providerId || model.providerId === providerId),
+    ) ?? null
+  );
+}
+
+function getPreferredModel(
+  models: ModelOption[],
+  fallbackProviderId: string,
 ): ModelSelection | null {
-  const storedPreference = resolveSessionModelPreference({
-    providerId: selectedProvider,
-  });
+  const model =
+    models.find((candidate) => candidate.recommended) ??
+    models.find((candidate) => !isModelAlias(candidate.id)) ??
+    models[0];
 
-  if (storedPreference.modelId) {
-    const selectedEntry = providerInventoryEntries.get(
-      storedPreference.providerId,
-    );
-    const selectedModel = selectedEntry?.models.find(
-      (model) => model.id === storedPreference.modelId,
-    );
-
-    if (selectedEntry && !selectedModel) {
-      return selectedProvider === "goose"
-        ? (buildModelGroups(providerInventoryEntries)
-            .flatMap((group) => group.models)
-            .at(0) ?? null)
-        : getPreferredModel(selectedEntry);
-    }
-
-    return {
-      providerId: storedPreference.providerId,
-      providerName: selectedEntry
-        ? getProviderName(selectedEntry)
-        : formatProviderLabel(storedPreference.providerId),
-      modelId: storedPreference.modelId,
-      modelName:
-        selectedModel?.name ??
-        storedPreference.modelName ??
-        storedPreference.modelId,
-    };
-  }
-
-  if (selectedProvider === "goose") {
-    return (
-      buildModelGroups(providerInventoryEntries)
-        .flatMap((group) => group.models)
-        .at(0) ?? null
-    );
-  }
-
-  const selectedEntry = providerInventoryEntries.get(selectedProvider);
-  return selectedEntry ? getPreferredModel(selectedEntry) : null;
+  return model ? modelOptionToSelection(model, fallbackProviderId) : null;
 }
 
 async function buildPathAttachments(
@@ -217,9 +232,7 @@ export function GlobalComposerPill({ onSend }: GlobalComposerPillProps) {
   const { t } = useTranslation("chat");
   const selectedProvider = useAgentStore((state) => state.selectedProvider);
   const projects = useProjectStore((state) => state.projects);
-  const providerInventoryEntries = useProviderInventoryStore(
-    (state) => state.entries,
-  );
+  const { getModelsForAgent } = useProviderInventory();
   const mergeInventoryEntries = useProviderInventoryStore(
     (state) => state.mergeEntries,
   );
@@ -234,15 +247,83 @@ export function GlobalComposerPill({ onSend }: GlobalComposerPillProps) {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null,
   );
+  const [gooseDefaultSelection, setGooseDefaultSelection] =
+    useState<ModelSelection | null>(null);
 
-  const defaultModelSelection = useMemo(
-    () =>
-      buildDefaultModelSelection(selectedProvider, providerInventoryEntries),
-    [providerInventoryEntries, selectedProvider],
+  const selectedAgentId =
+    resolveAgentProviderCatalogIdStrict(selectedProvider) ?? "goose";
+  const concreteSelectedProviderId =
+    resolveAgentProviderCatalogIdStrict(selectedProvider) == null
+      ? selectedProvider
+      : null;
+  const availableModels = useMemo(
+    () => getModelsForAgent(selectedAgentId),
+    [getModelsForAgent, selectedAgentId],
   );
+  const defaultModelSelection = useMemo(() => {
+    const storedPreference = getStoredModelPreference(selectedAgentId);
+    if (storedPreference) {
+      const matchingModel = findMatchingModel(
+        availableModels,
+        storedPreference.modelId,
+        storedPreference.providerId,
+      );
+      const storedSelectionCompatible =
+        !concreteSelectedProviderId ||
+        storedPreference.providerId === concreteSelectedProviderId;
+
+      if (matchingModel || storedSelectionCompatible) {
+        const providerId =
+          matchingModel?.providerId ??
+          storedPreference.providerId ??
+          selectedProvider;
+        return {
+          providerId,
+          providerName:
+            matchingModel?.providerName ?? formatProviderLabel(providerId),
+          modelId: storedPreference.modelId,
+          modelName:
+            matchingModel != null
+              ? getModelName(matchingModel)
+              : storedPreference.modelName,
+        };
+      }
+    }
+
+    if (
+      gooseDefaultSelection &&
+      (!concreteSelectedProviderId ||
+        gooseDefaultSelection.providerId === concreteSelectedProviderId)
+    ) {
+      const matchingDefault = findMatchingModel(
+        availableModels,
+        gooseDefaultSelection.modelId,
+        gooseDefaultSelection.providerId,
+      );
+      return matchingDefault
+        ? modelOptionToSelection(matchingDefault, selectedProvider)
+        : gooseDefaultSelection;
+    }
+
+    const compatibleModels = concreteSelectedProviderId
+      ? availableModels.filter(
+          (model) =>
+            !model.providerId ||
+            model.providerId === concreteSelectedProviderId,
+        )
+      : availableModels;
+
+    return getPreferredModel(compatibleModels, selectedProvider);
+  }, [
+    availableModels,
+    concreteSelectedProviderId,
+    gooseDefaultSelection,
+    selectedAgentId,
+    selectedProvider,
+  ]);
   const modelGroups = useMemo(
-    () => buildModelGroups(providerInventoryEntries),
-    [providerInventoryEntries],
+    () => buildModelGroups(availableModels, selectedProvider),
+    [availableModels, selectedProvider],
   );
   const selectedProject = useMemo(
     () => projects.find((project) => project.id === selectedProjectId) ?? null,
@@ -323,6 +404,56 @@ export function GlobalComposerPill({ onSend }: GlobalComposerPillProps) {
       cancelled = true;
     };
   }, [modelPickerOpen, mergeInventoryEntries]);
+
+  useEffect(() => {
+    if (selectedAgentId !== "goose") {
+      setGooseDefaultSelection(null);
+      return;
+    }
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const client = await getClient();
+        const [providerResponse, modelResponse] = await Promise.all([
+          client.goose.GooseConfigRead({ key: GOOSE_PROVIDER_CONFIG_KEY }),
+          client.goose.GooseConfigRead({ key: GOOSE_MODEL_CONFIG_KEY }),
+        ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        const providerId =
+          typeof providerResponse.value === "string"
+            ? providerResponse.value
+            : selectedProvider;
+        const modelId =
+          typeof modelResponse.value === "string"
+            ? modelResponse.value
+            : undefined;
+
+        setGooseDefaultSelection(
+          modelId
+            ? {
+                providerId,
+                providerName: formatProviderLabel(providerId),
+                modelId,
+                modelName: modelId,
+              }
+            : null,
+        );
+      } catch {
+        if (!cancelled) {
+          setGooseDefaultSelection(null);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedAgentId, selectedProvider]);
 
   const expanded =
     focused ||
@@ -407,7 +538,7 @@ export function GlobalComposerPill({ onSend }: GlobalComposerPillProps) {
           setFocused(false);
         }
       }}
-      className="fixed bottom-6 right-6 z-40 flex w-[482px] max-w-[calc(100vw-48px)] flex-col rounded-[40px] bg-white/15 px-4 py-3 ring-1 ring-inset ring-white/60 outline outline-1 outline-black/5"
+      className="fixed bottom-3 right-3 z-40 flex w-[482px] max-w-[calc(100vw-24px)] flex-col rounded-[40px] bg-white/15 px-4 py-3 ring-1 ring-inset ring-white/60 outline outline-1 outline-black/5"
       style={{
         backdropFilter: "blur(24px) saturate(180%) brightness(1.05)",
         WebkitBackdropFilter: "blur(24px) saturate(180%) brightness(1.05)",
