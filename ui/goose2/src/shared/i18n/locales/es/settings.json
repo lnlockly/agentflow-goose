@@ -81,7 +81,6 @@
     "addExtension": "Agregar extensión",
     "editExtension": "Editar extensión",
     "deleteExtension": "Eliminar extensión",
-    "enable": "Habilitar",
     "configure": "Configurar {{name}}",
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -124,7 +123,6 @@
     "hideGooseCapabilities": "Ocultar capacidades integradas de Goose",
     "errors": {
       "saveFailed": "Error al guardar la extensión. Inténtalo de nuevo.",
-      "enableFailed": "Error al habilitar {{name}}. Inténtalo de nuevo.",
       "deleteFailed": "Error al eliminar la extensión. Inténtalo de nuevo.",
       "nameConflict": "Ya existe una extensión llamada \"{{name}}\"."
     }

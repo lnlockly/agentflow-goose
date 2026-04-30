@@ -44,12 +44,10 @@ export function ExtensionsSettings() {
     isLoading,
     modalMode,
     editingExtension,
-    enablingConfigKey,
     handleAdd,
     handleConfigure,
     handleSubmit,
     handleDelete,
-    handleEnable,
     handleModalClose,
   } = useExtensionsSettings();
   const [searchTerm, setSearchTerm] = useState("");
@@ -103,8 +101,6 @@ export function ExtensionsSettings() {
               key={ext.config_key}
               extension={ext}
               onConfigure={handleConfigure}
-              onEnable={handleEnable}
-              isEnabling={enablingConfigKey === ext.config_key}
             />
           ))}
         </div>
