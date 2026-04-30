@@ -1,40 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import { IconChevronDown, IconPlus } from "@tabler/icons-react";
 import { Button } from "@/shared/ui/button";
 import { SearchBar } from "@/shared/ui/SearchBar";
 import { FilterRow, PageHeader } from "@/shared/ui/page-shell";
+import { useExtensionsSettings } from "../hooks/useExtensionsSettings";
 import {
-  listExtensions,
-  addExtension,
-  removeExtension,
-  nameToKey,
-} from "../api/extensions";
-import {
-  getDisplayName,
-  type ExtensionConfig,
-  type ExtensionEntry,
-} from "../types";
+  EXTENSION_CATEGORIES,
+  filterExtensions,
+  getExtensionCategoryCounts,
+  splitExtensionsByCategory,
+  type ExtensionFilter,
+} from "../lib/extensionCategories";
+import type { ExtensionEntry } from "../types";
 import { ExtensionItem } from "./ExtensionItem";
 import { ExtensionModal } from "./ExtensionModal";
-
-type ExtensionCategory = "appsServices" | "gooseCapabilities";
-
-type ExtensionFilter = "all" | ExtensionCategory;
-
-const GOOSE_CAPABILITY_TYPES = new Set(["builtin", "platform"]);
-
-function classifyExtension(extension: ExtensionEntry): ExtensionCategory {
-  if (GOOSE_CAPABILITY_TYPES.has(extension.type)) {
-    return "gooseCapabilities";
-  }
-  return "appsServices";
-}
-
-function compareExtensionsByName(a: ExtensionEntry, b: ExtensionEntry) {
-  return getDisplayName(a).localeCompare(getDisplayName(b));
-}
 
 function FilterButton({
   active,
@@ -59,73 +39,34 @@ function FilterButton({
 
 export function ExtensionsSettings() {
   const { t } = useTranslation("settings");
-  const [extensions, setExtensions] = useState<ExtensionEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [modalMode, setModalMode] = useState<"add" | "edit" | null>(null);
-  const [editingExtension, setEditingExtension] =
-    useState<ExtensionEntry | null>(null);
+  const {
+    extensions,
+    isLoading,
+    modalMode,
+    editingExtension,
+    handleAdd,
+    handleConfigure,
+    handleSubmit,
+    handleDelete,
+    handleModalClose,
+  } = useExtensionsSettings();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState<ExtensionFilter>("all");
   const [showGooseCapabilities, setShowGooseCapabilities] = useState(false);
 
-  const fetchExtensions = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const result = await listExtensions();
-      setExtensions(result);
-    } catch {
-      setExtensions([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchExtensions();
-  }, [fetchExtensions]);
-
-  const matchesSearch = useCallback(
-    (ext: ExtensionEntry) => {
-      if (!searchTerm) return true;
-      const q = searchTerm.toLowerCase();
-      const category = classifyExtension(ext);
-      return (
-        getDisplayName(ext).toLowerCase().includes(q) ||
-        ext.name.toLowerCase().includes(q) ||
-        (ext.description ?? "").toLowerCase().includes(q) ||
-        t(`extensions.categories.${category}`).toLowerCase().includes(q)
-      );
-    },
-    [searchTerm, t],
-  );
-
   const filteredExtensions = useMemo(
     () =>
-      extensions
-        .filter((extension) => {
-          const category = classifyExtension(extension);
-          return (
-            matchesSearch(extension) &&
-            (activeFilter === "all" || category === activeFilter)
-          );
-        })
-        .sort(compareExtensionsByName),
-    [activeFilter, extensions, matchesSearch],
+      filterExtensions({
+        extensions,
+        searchTerm,
+        activeFilter,
+        getCategoryLabel: (category) => t(`extensions.categories.${category}`),
+      }),
+    [activeFilter, extensions, searchTerm, t],
   );
 
-  const primaryExtensions = useMemo(
-    () =>
-      filteredExtensions.filter(
-        (ext) => classifyExtension(ext) !== "gooseCapabilities",
-      ),
-    [filteredExtensions],
-  );
-
-  const gooseCapabilities = useMemo(
-    () =>
-      filteredExtensions.filter(
-        (ext) => classifyExtension(ext) === "gooseCapabilities",
-      ),
+  const { primaryExtensions, gooseCapabilities } = useMemo(
+    () => splitExtensionsByCategory(filteredExtensions),
     [filteredExtensions],
   );
 
@@ -138,64 +79,10 @@ export function ExtensionsSettings() {
   const showGooseCapabilitiesToggle =
     activeFilter !== "gooseCapabilities" && gooseCapabilities.length > 0;
 
-  const categoryCounts = useMemo(() => {
-    const counts: Record<ExtensionCategory, number> = {
-      appsServices: 0,
-      gooseCapabilities: 0,
-    };
-    for (const extension of extensions) {
-      counts[classifyExtension(extension)] += 1;
-    }
-    return counts;
-  }, [extensions]);
-
-  const handleConfigure = (ext: ExtensionEntry) => {
-    setEditingExtension(ext);
-    setModalMode("edit");
-  };
-
-  const handleSubmit = async (name: string, config: ExtensionConfig) => {
-    try {
-      const newKey = nameToKey(name);
-      const isEdit = !!editingExtension;
-      const isAdd = !editingExtension;
-      const keyChanged = isEdit && editingExtension.config_key !== newKey;
-
-      if (
-        (isAdd || keyChanged) &&
-        extensions.some((e) => e.config_key === newKey)
-      ) {
-        toast.error(t("extensions.errors.nameConflict", { name }));
-        return;
-      }
-
-      await addExtension(name, config);
-      if (keyChanged) {
-        await removeExtension(editingExtension.config_key);
-      }
-      setModalMode(null);
-      setEditingExtension(null);
-      await fetchExtensions();
-    } catch {
-      toast.error(t("extensions.errors.saveFailed"));
-    }
-  };
-
-  const handleDelete = async (configKey: string) => {
-    try {
-      await removeExtension(configKey);
-      setModalMode(null);
-      setEditingExtension(null);
-      await fetchExtensions();
-    } catch {
-      toast.error(t("extensions.errors.deleteFailed"));
-    }
-  };
-
-  const handleModalClose = () => {
-    setModalMode(null);
-    setEditingExtension(null);
-  };
+  const categoryCounts = useMemo(
+    () => getExtensionCategoryCounts(extensions),
+    [extensions],
+  );
 
   const renderSection = (
     title: string,
@@ -232,10 +119,7 @@ export function ExtensionsSettings() {
             type="button"
             variant="outline-flat"
             size="xs"
-            onClick={() => {
-              setEditingExtension(null);
-              setModalMode("add");
-            }}
+            onClick={handleAdd}
           >
             <IconPlus className="size-3.5" />
             {t("extensions.addExtension")}
@@ -256,17 +140,16 @@ export function ExtensionsSettings() {
           >
             {t("extensions.filters.all")}
           </FilterButton>
-          {(["appsServices", "gooseCapabilities"] as ExtensionCategory[]).map(
-            (category) =>
-              categoryCounts[category] > 0 ? (
-                <FilterButton
-                  key={category}
-                  active={activeFilter === category}
-                  onClick={() => setActiveFilter(category)}
-                >
-                  {t(`extensions.categories.${category}`)}
-                </FilterButton>
-              ) : null,
+          {EXTENSION_CATEGORIES.map((category) =>
+            categoryCounts[category] > 0 ? (
+              <FilterButton
+                key={category}
+                active={activeFilter === category}
+                onClick={() => setActiveFilter(category)}
+              >
+                {t(`extensions.categories.${category}`)}
+              </FilterButton>
+            ) : null,
           )}
         </FilterRow>
       </div>

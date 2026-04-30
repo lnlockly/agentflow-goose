@@ -390,13 +390,6 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
     const handleOpenSettingsEvent = (event: Event) => {
       const section = (event as CustomEvent<{ section?: string }>).detail
         ?.section;
-      if (section === "extensions") {
-        setSettingsOpen(false);
-        useChatSessionStore.getState().setActiveSession(null);
-        setActiveView("extensions");
-        return;
-      }
-
       if (section && SETTINGS_SECTIONS.has(section as SectionId)) {
         openSettings(section as SectionId);
         return;

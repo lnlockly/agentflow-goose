@@ -122,7 +122,6 @@
     "showGooseCapabilities": "Mostrar {{count}} capacidades integradas de Goose",
     "hideGooseCapabilities": "Ocultar capacidades integradas de Goose",
     "errors": {
-      "toggleFailed": "Error al cambiar la extensión. Inténtalo de nuevo.",
       "saveFailed": "Error al guardar la extensión. Inténtalo de nuevo.",
       "deleteFailed": "Error al eliminar la extensión. Inténtalo de nuevo.",
       "nameConflict": "Ya existe una extensión llamada \"{{name}}\"."

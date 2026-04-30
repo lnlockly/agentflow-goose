@@ -5,13 +5,6 @@ import type {
   SessionExtensionStatus,
 } from "../types";
 
-export function nameToKey(name: string): string {
-  return name
-    .replace(/\s/g, "")
-    .replace(/[^a-zA-Z0-9_-]/g, "_")
-    .toLowerCase();
-}
-
 export async function listExtensions(): Promise<ExtensionEntry[]> {
   const client = await getClient();
   const response = await client.goose.GooseConfigExtensions({});
@@ -22,7 +15,7 @@ export async function listSessionExtensionStatus(
   sessionId: string,
 ): Promise<SessionExtensionStatus[]> {
   const client = await getClient();
-  const response = await client.extMethod("_goose/session/extensions/status", {
+  const response = await client.goose.GooseSessionExtensionsStatus({
     sessionId,
   });
   return (response.extensions ?? []) as SessionExtensionStatus[];

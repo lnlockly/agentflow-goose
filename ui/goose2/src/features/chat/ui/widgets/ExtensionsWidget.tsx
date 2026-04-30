@@ -6,8 +6,9 @@ import {
   getDisplayName,
   type SessionExtensionStatus,
 } from "@/features/extensions/types";
+import { getUsedSessionExtensions } from "@/features/extensions/lib/extensionUsage";
 import { cn } from "@/shared/lib/cn";
-import type { Message, ToolRequestContent } from "@/shared/types/messages";
+import type { Message } from "@/shared/types/messages";
 import { useChatStore } from "../../stores/chatStore";
 import { Widget } from "./Widget";
 
@@ -15,46 +16,7 @@ interface ExtensionsWidgetProps {
   sessionId: string;
 }
 
-interface ExtensionUsage {
-  count: number;
-  lastUsedAt: number;
-}
-
 const EMPTY_MESSAGES: Message[] = [];
-
-function normalizeName(name: string): string {
-  return name
-    .replace(/\s/g, "")
-    .replace(/[^a-zA-Z0-9_-]/g, "_")
-    .toLowerCase();
-}
-
-function toolOwnerFromName(name: string): string | null {
-  const [owner] = name.split("__");
-  return owner && owner !== name ? normalizeName(owner) : null;
-}
-
-function getToolOwnerFromName(
-  toolName: string,
-  toolToExtension: Map<string, string>,
-): string | null {
-  return (
-    toolToExtension.get(normalizeName(toolName)) ?? toolOwnerFromName(toolName)
-  );
-}
-
-function getToolOwner(
-  toolRequest: ToolRequestContent,
-  toolToExtension: Map<string, string>,
-): string | null {
-  if (toolRequest.extensionName) {
-    return normalizeName(toolRequest.extensionName);
-  }
-  if (toolRequest.toolName) {
-    return getToolOwnerFromName(toolRequest.toolName, toolToExtension);
-  }
-  return getToolOwnerFromName(toolRequest.name, toolToExtension);
-}
 
 function ExtensionRow({ extension }: { extension: SessionExtensionStatus }) {
   const { t } = useTranslation("chat");
@@ -128,50 +90,9 @@ export function ExtensionsWidget({ sessionId }: ExtensionsWidgetProps) {
     fetchStatuses();
   }, [fetchStatuses, toolRequestSignature]);
 
-  const toolToExtension = useMemo(() => {
-    const byTool = new Map<string, string>();
-    for (const extension of extensions) {
-      for (const tool of extension.tools) {
-        byTool.set(normalizeName(tool), extension.config_key);
-        const unprefixedName = tool.split("__").pop();
-        const unprefixedKey = unprefixedName
-          ? normalizeName(unprefixedName)
-          : null;
-        if (unprefixedKey && !byTool.has(unprefixedKey)) {
-          byTool.set(unprefixedKey, extension.config_key);
-        }
-      }
-    }
-    return byTool;
-  }, [extensions]);
-
-  const usageByExtension = useMemo(() => {
-    const usage = new Map<string, ExtensionUsage>();
-    for (const message of messages) {
-      for (const content of message.content) {
-        if (content.type !== "toolRequest") continue;
-        const owner = getToolOwner(content, toolToExtension);
-        if (!owner) continue;
-        const previous = usage.get(owner);
-        usage.set(owner, {
-          count: (previous?.count ?? 0) + 1,
-          lastUsedAt: Math.max(previous?.lastUsedAt ?? 0, message.created),
-        });
-      }
-    }
-    return usage;
-  }, [messages, toolToExtension]);
-
   const used = useMemo(
-    () =>
-      extensions
-        .filter((ext) => usageByExtension.has(ext.config_key))
-        .sort((a, b) => {
-          const aUsage = usageByExtension.get(a.config_key)?.lastUsedAt ?? 0;
-          const bUsage = usageByExtension.get(b.config_key)?.lastUsedAt ?? 0;
-          return bUsage - aUsage;
-        }),
-    [extensions, usageByExtension],
+    () => getUsedSessionExtensions(extensions, messages),
+    [extensions, messages],
   );
 
   const renderSection = (sectionExtensions: SessionExtensionStatus[]) => {
