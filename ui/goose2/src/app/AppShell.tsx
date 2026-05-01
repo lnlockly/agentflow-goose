@@ -531,21 +531,14 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
         if (!workingDir) {
           return;
         }
-        const gooseSessionId = await acpPrepareSession(
+        await sessionStore.prepareSessionBinding({
           sessionId,
-          session.providerId ?? agentStore.selectedProvider ?? "goose",
+          providerId:
+            session.providerId ?? agentStore.selectedProvider ?? "goose",
           workingDir,
-          {
-            personaId: session.personaId,
-            ...(projectId ? { projectId } : {}),
-            ...(!session.acpSessionId ? { knownNew: true } : {}),
-          },
-        );
-        if (gooseSessionId && session.acpSessionId !== gooseSessionId) {
-          sessionStore.updateSession(sessionId, {
-            acpSessionId: gooseSessionId,
-          });
-        }
+          personaId: session.personaId,
+          projectId,
+        });
       })().catch((error) => {
         console.error(
           "Failed to update ACP session project working directory:",

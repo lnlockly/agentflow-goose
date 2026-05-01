@@ -28,7 +28,6 @@ import {
   useResolvedAgentModelPicker,
   type PreferredModelSelection,
 } from "./useResolvedAgentModelPicker";
-import { prepareBoundSession } from "./prepareBoundSession";
 
 interface UseChatSessionControllerOptions {
   sessionId: string | null;
@@ -170,13 +169,13 @@ export function useChatSessionController({
         nextProject,
         nextWorkspacePath,
       );
-      await prepareBoundSession({
+      await useChatSessionStore.getState().prepareSessionBinding({
         sessionId,
         providerId,
         workingDir,
         personaId,
         projectId: nextProjectId,
-        modelSelection,
+        model: modelSelection,
       });
     },
     [

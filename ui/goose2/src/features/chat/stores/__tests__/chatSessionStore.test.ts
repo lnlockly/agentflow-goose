@@ -119,6 +119,68 @@ describe("chatSessionStore", () => {
     });
   });
 
+  describe("prepareSessionBinding", () => {
+    it("binds an unbacked local session through ACP and applies the model", async () => {
+      mockAcpPrepareSession.mockResolvedValue("goose-session-1");
+      mockAcpSetModel.mockResolvedValue(undefined);
+      const session = useChatSessionStore.getState().createLocalSession({
+        title: "Local Chat",
+        providerId: "openai",
+      });
+
+      await useChatSessionStore.getState().prepareSessionBinding({
+        sessionId: session.id,
+        providerId: "openai",
+        workingDir: "/tmp/project",
+        personaId: "persona-1",
+        projectId: "project-1",
+        model: { id: "gpt-4.1", name: "GPT-4.1" },
+      });
+
+      expect(mockAcpPrepareSession).toHaveBeenCalledWith(
+        session.id,
+        "openai",
+        "/tmp/project",
+        {
+          personaId: "persona-1",
+          projectId: "project-1",
+          knownNew: true,
+        },
+      );
+      expect(mockAcpSetModel).toHaveBeenCalledWith(session.id, "gpt-4.1");
+      expect(
+        useChatSessionStore.getState().getSession(session.id),
+      ).toMatchObject({
+        acpSessionId: "goose-session-1",
+        modelId: "gpt-4.1",
+        modelName: "GPT-4.1",
+      });
+    });
+
+    it("skips setting an already-applied model on an ACP-backed session", async () => {
+      mockAcpPrepareSession.mockResolvedValue("session-1");
+      const session = seedSession({
+        modelId: "gpt-4.1",
+        modelName: "GPT-4.1",
+      });
+
+      await useChatSessionStore.getState().prepareSessionBinding({
+        sessionId: session.id,
+        providerId: "openai",
+        workingDir: "/tmp/project",
+        model: { id: "gpt-4.1", name: "GPT-4.1" },
+      });
+
+      expect(mockAcpPrepareSession).toHaveBeenCalledWith(
+        session.id,
+        "openai",
+        "/tmp/project",
+        { personaId: undefined },
+      );
+      expect(mockAcpSetModel).not.toHaveBeenCalled();
+    });
+  });
+
   describe("loadSessions", () => {
     it("loads sessions from ACP and maps them correctly", async () => {
       mockAcpListSessions.mockResolvedValue([
