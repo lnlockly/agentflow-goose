@@ -273,7 +273,7 @@ kill-all:
 # ── Utilities ────────────────────────────────────────────────
 
 # Delete goose2 dev session data and webview storage so the next launch shows onboarding
-wipe:
+wipe confirm="no":
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -286,8 +286,10 @@ wipe:
     echo ""
     echo "Preserved: config.yaml, secrets, keyring, legacy .jsonl sessions, scheduler, prod data, app state"
     echo ""
-    read -p "Continue? [y/N] " confirm
-    [[ "$confirm" =~ ^[Yy]$ ]] || exit 0
+    if [[ "{{ confirm }}" != "yes" ]]; then
+        read -p "Continue? [y/N] " answer
+        [[ "$answer" =~ ^[Yy]$ ]] || exit 0
+    fi
 
     # Sessions DB (preserve .jsonl files for re-migration)
     rm -f "$DATA_DIR/sessions/sessions.db" \
