@@ -281,24 +281,22 @@ wipe confirm="no":
 
     echo "This will delete:"
     echo "  - Sessions DB:      $DATA_DIR/sessions/sessions.db{,-wal,-shm}"
-    echo "  - Legacy sessions:  $DATA_DIR/sessions/*.jsonl"
     echo "  - Projects:         ~/.goose/projects/"
     echo "  - Webview data:     ~/Library/WebKit/goose2/"
     echo "  - Tauri caches:     ~/Library/Caches/{goose2,goose2-dev}/"
     echo ""
-    echo "Preserved: config.yaml, secrets, keyring, scheduler, prod data, app state"
+    echo "Preserved: config.yaml, secrets, keyring, legacy .jsonl sessions, scheduler, prod data, app state"
     echo ""
     if [[ "{{ confirm }}" != "yes" ]]; then
         read -p "Continue? [y/N] " answer
         [[ "$answer" =~ ^[Yy]$ ]] || exit 0
     fi
 
-    # Sessions DB and legacy .jsonl files
+    # Sessions DB (preserve .jsonl files for re-migration)
     rm -f "$DATA_DIR/sessions/sessions.db" \
           "$DATA_DIR/sessions/sessions.db-wal" \
           "$DATA_DIR/sessions/sessions.db-shm"
-    rm -f "$DATA_DIR/sessions/"*.jsonl
-    echo "✓ Removed sessions database and legacy session files"
+    echo "✓ Removed sessions database"
 
     # Projects
     rm -rf "$HOME/.goose/projects"
@@ -314,7 +312,7 @@ wipe confirm="no":
     echo "✓ Removed caches"
 
     echo ""
-    echo "Done. Next launch will show onboarding with a clean slate."
+    echo "Done. Next launch will show onboarding and re-migrate legacy sessions."
 
 # Clean build artifacts
 clean:
