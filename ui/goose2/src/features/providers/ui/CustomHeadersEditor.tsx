@@ -56,7 +56,7 @@ export function CustomHeadersEditor({
                 placeholder={t("providers.custom.fields.headerKey")}
                 disabled={disabled}
                 spellCheck={false}
-                className="h-8 text-xs"
+                className="h-8 text-meta"
               />
               <Input
                 value={header.value}
@@ -66,7 +66,7 @@ export function CustomHeadersEditor({
                 placeholder={t("providers.custom.fields.headerValue")}
                 disabled={disabled}
                 spellCheck={false}
-                className="h-8 text-xs"
+                className="h-8 text-meta"
               />
               <Button
                 type="button"
@@ -82,7 +82,7 @@ export function CustomHeadersEditor({
           ))}
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-meta text-muted-foreground">
           {t("providers.custom.emptyHeaders")}
         </p>
       )}

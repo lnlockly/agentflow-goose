@@ -49,7 +49,7 @@ export function PersonaDetails({
             <div className="min-w-0 flex-1 space-y-2">
               <DetailField
                 label={t("editor.displayName")}
-                contentClassName="text-base font-semibold tracking-tight"
+                contentClassName="text-heading-section text-foreground"
               >
                 {displayName}
               </DetailField>
@@ -98,7 +98,7 @@ export function PersonaDetails({
             }
           />
           <div className="rounded-lg border border-border bg-muted/20 px-4 py-3">
-            <MessageResponse className="min-w-0 text-sm leading-6">
+            <MessageResponse className="min-w-0 text-bubble">
               {systemPrompt}
             </MessageResponse>
           </div>

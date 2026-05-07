@@ -26,9 +26,11 @@ export function ChatsSettings() {
   return (
     <SettingsPage title={t("chats.title")}>
       <div className="space-y-3">
-        <h4 className="text-sm font-semibold">{t("chats.sectionTitle")}</h4>
+        <h4 className="text-heading-section text-foreground">
+          {t("chats.sectionTitle")}
+        </h4>
         {!loadingArchivedChats && archivedChats.length === 0 ? (
-          <p className="text-xs text-muted-foreground">{t("chats.empty")}</p>
+          <p className="text-meta text-muted-foreground">{t("chats.empty")}</p>
         ) : null}
         {archivedChats.map((session) => (
           <div
@@ -36,13 +38,13 @@ export function ChatsSettings() {
             className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
           >
             <div className="min-w-0">
-              <div className="truncate text-sm">
+              <div className="truncate text-heading-item">
                 {getDisplaySessionTitle(
                   session.title,
                   t("common:session.defaultTitle"),
                 )}
               </div>
-              <p className="truncate text-xs text-muted-foreground">
+              <p className="truncate text-meta text-muted-foreground">
                 {session.projectId
                   ? t("chats.types.project")
                   : t("chats.types.standalone")}

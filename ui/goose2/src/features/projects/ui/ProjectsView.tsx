@@ -157,10 +157,8 @@ export function ProjectsView({ onStartChat }: ProjectsViewProps) {
           {/* Header */}
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h1 className="text-lg font-semibold font-display tracking-tight">
-                {t("view.title")}
-              </h1>
-              <p className="text-xs text-muted-foreground">
+              <h1 className="text-heading-page">{t("view.title")}</h1>
+              <p className="text-body-subtle text-muted-foreground">
                 {t("view.description")}
               </p>
             </div>
@@ -199,9 +197,9 @@ export function ProjectsView({ onStartChat }: ProjectsViewProps) {
                       imageClassName="mt-0.5 size-4 shrink-0 rounded-[4px]"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium">{project.name}</p>
+                      <p className="text-heading-item">{project.name}</p>
                       {project.prompt && (
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                        <p className="text-meta text-muted-foreground mt-0.5 line-clamp-2">
                           {project.prompt}
                         </p>
                       )}
@@ -226,7 +224,9 @@ export function ProjectsView({ onStartChat }: ProjectsViewProps) {
                 className="h-auto w-full rounded-lg border border-dashed border-border px-4 py-3 text-muted-foreground hover:border-border hover:bg-accent/50"
               >
                 <Plus className="size-4" />
-                <span className="text-sm">{t("view.newProject")}</span>
+                <span className="text-heading-item">
+                  {t("view.newProject")}
+                </span>
               </Button>
             </div>
           )}
@@ -236,12 +236,12 @@ export function ProjectsView({ onStartChat }: ProjectsViewProps) {
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground rounded-lg border border-dashed border-transparent">
               <FolderKanban className="h-10 w-10 opacity-30" />
               <div className="text-center">
-                <p className="text-sm font-medium">
+                <p className="text-heading-item">
                   {projects.length === 0
                     ? t("view.emptyTitle")
                     : t("view.noMatchesTitle")}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-meta text-muted-foreground mt-1">
                   {projects.length === 0
                     ? t("view.emptyDescription")
                     : t("view.noMatchesDescription")}

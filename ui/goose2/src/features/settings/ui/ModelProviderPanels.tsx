@@ -31,7 +31,7 @@ export function InventorySyncMessage({
     return (
       <p
         role="status"
-        className="flex items-center gap-2 text-xs text-muted-foreground"
+        className="flex items-center gap-2 text-meta text-muted-foreground"
       >
         <IconLoader2 className="size-3 animate-spin text-brand" />
         <span>{t("providers.loadingModels")}</span>
@@ -43,7 +43,7 @@ export function InventorySyncMessage({
     return (
       <p
         role="status"
-        className="rounded-md border border-border-warning bg-background-warning/20 px-2.5 py-2 text-xs text-text-warning"
+        className="rounded-md border border-border-warning bg-background-warning/20 px-2.5 py-2 text-meta text-text-warning"
       >
         {t("providers.modelRefreshWarning", { message: warning })}
       </p>
@@ -106,9 +106,9 @@ export function ConnectedFieldsPanel({
           >
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm">{field.label}</p>
+                <p className="text-heading-item">{field.label}</p>
                 {!isEditing && (
-                  <p className="truncate text-xs text-muted-foreground">
+                  <p className="truncate text-meta text-muted-foreground">
                     {getDisplayValue(field, fieldValueMap, t)}
                   </p>
                 )}
@@ -150,7 +150,7 @@ export function ConnectedFieldsPanel({
                     }
                   }}
                   disabled={saving}
-                  className="h-8 flex-1 text-xs"
+                  className="h-8 flex-1 text-meta"
                 />
                 <Button
                   type="button"
@@ -203,7 +203,7 @@ export function ConnectedFieldsPanel({
         syncing={inventorySyncing}
         warning={inventoryWarning}
       />
-      {error && <p className="text-xs text-danger">{error}</p>}
+      {error && <p className="text-meta text-danger">{error}</p>}
     </div>
   );
 }
@@ -251,14 +251,16 @@ export function SetupFieldsPanel({
       className="focus-override mx-3 space-y-3 rounded-b-lg border-x border-b px-3 py-3 outline-none"
     >
       {!isConnected && fieldSetupDescription ? (
-        <p className="text-xs text-muted-foreground">{fieldSetupDescription}</p>
+        <p className="text-meta text-muted-foreground">
+          {fieldSetupDescription}
+        </p>
       ) : null}
       {fields.map((field) => {
         const fieldValue = resolveFieldValue(field, fieldValueMap);
         return (
           <div key={field.key} className="space-y-1">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-xs font-medium text-foreground">
+              <span className="text-meta font-medium text-foreground">
                 {field.label}
               </span>
               {field.required && (
@@ -277,7 +279,7 @@ export function SetupFieldsPanel({
               }
               onChange={(event) => onDraftChange(field.key, event.target.value)}
               disabled={saving}
-              className="h-8 text-xs"
+              className="h-8 text-meta"
             />
           </div>
         );
@@ -310,7 +312,7 @@ export function SetupFieldsPanel({
         syncing={inventorySyncing}
         warning={inventoryWarning}
       />
-      {error && <p className="text-xs text-danger">{error}</p>}
+      {error && <p className="text-meta text-danger">{error}</p>}
     </div>
   );
 }

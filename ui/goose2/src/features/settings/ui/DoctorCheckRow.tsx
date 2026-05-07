@@ -70,8 +70,8 @@ export function DoctorCheckRow({ check, onFixed }: DoctorCheckRowProps) {
         />
 
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-sm font-medium">{check.label}</span>
-          <span className="break-words text-xs text-muted-foreground">
+          <span className="text-heading-item">{check.label}</span>
+          <span className="break-words text-meta text-muted-foreground">
             {check.message}
           </span>
           {check.path && (
@@ -94,7 +94,7 @@ export function DoctorCheckRow({ check, onFixed }: DoctorCheckRowProps) {
               setFixing(false);
               setShowFixDialog(true);
             }}
-            className="flex flex-shrink-0 items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex flex-shrink-0 items-center gap-1 rounded-md border border-border px-2 py-1 text-meta text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <Wrench className="h-3.5 w-3.5" />
             {t("common:actions.fix")}
@@ -127,11 +127,11 @@ export function DoctorCheckRow({ check, onFixed }: DoctorCheckRowProps) {
             <AlertDialogDescription>
               {t("settings:doctor.runFixDescription")}
             </AlertDialogDescription>
-            <code className="block break-all rounded bg-muted px-3 py-2 font-mono text-xs">
+            <code className="block break-all rounded bg-muted px-3 py-2 font-mono text-meta">
               {check.fixCommand}
             </code>
           </AlertDialogHeader>
-          {fixError && <p className="text-xs text-destructive">{fixError}</p>}
+          {fixError && <p className="text-meta text-destructive">{fixError}</p>}
           <AlertDialogFooter>
             <AlertDialogCancel disabled={fixing}>
               {t("common:actions.cancel")}

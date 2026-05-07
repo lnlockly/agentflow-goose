@@ -138,12 +138,12 @@ export function getFieldSetupDescription(
 export function renderInlineCodeMessage(message: string) {
   const command = "`goose configure`";
   if (!message.includes(command)) {
-    return <p className="text-xs text-muted-foreground">{message}</p>;
+    return <p className="text-meta text-muted-foreground">{message}</p>;
   }
 
   const [before, after] = message.split(command);
   return (
-    <p className="text-xs text-muted-foreground">
+    <p className="text-meta text-muted-foreground">
       {before}
       <code className="rounded bg-muted px-1 py-0.5 text-xxs">
         goose configure
@@ -162,5 +162,5 @@ export function renderSetupMessage(message: string | null) {
     return renderInlineCodeMessage(message);
   }
 
-  return <p className="text-xs text-muted-foreground">{message}</p>;
+  return <p className="text-meta text-muted-foreground">{message}</p>;
 }

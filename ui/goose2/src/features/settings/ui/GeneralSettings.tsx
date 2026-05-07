@@ -24,9 +24,11 @@ function SettingRow({
   return (
     <div className="flex items-start justify-between gap-8 py-3">
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{label}</p>
+        <p className="text-heading-item">{label}</p>
         {description ? (
-          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+          <p className="mt-0.5 text-meta text-muted-foreground">
+            {description}
+          </p>
         ) : null}
       </div>
       <div className="flex-shrink-0">{children}</div>

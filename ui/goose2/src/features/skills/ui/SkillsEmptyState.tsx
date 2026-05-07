@@ -30,10 +30,10 @@ export function SkillsEmptyState({
     >
       <AtSign className="h-10 w-10 opacity-30" />
       <div className="text-center">
-        <p className="text-sm font-normal text-foreground">
+        <p className="text-heading-item text-foreground">
           {hasAnySkills ? t("view.noMatchesTitle") : t("view.emptyTitle")}
         </p>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-1 text-body-subtle text-muted-foreground">
           {hasAnySkills
             ? t("view.noMatchesDescription")
             : t("view.emptyDescription")}

@@ -441,7 +441,7 @@ export function ChatInput({
 
               {queuedMessage && (
                 <div className="mb-2 flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-1.5">
-                  <span className="flex-1 truncate text-xs text-muted-foreground">
+                  <span className="flex-1 truncate text-meta text-muted-foreground">
                     {t("queue.label", { text: queuedMessage.text })}
                   </span>
                   <button
@@ -465,7 +465,7 @@ export function ChatInput({
                   placeholder={inputPlaceholder}
                   disabled={disabled}
                   rows={1}
-                  className="mb-3 min-h-[36px] max-h-[200px] w-full resize-none bg-transparent px-1 text-[14px] leading-relaxed text-foreground placeholder:font-light placeholder:text-muted-foreground/60 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-60"
+                  className="mb-3 min-h-[36px] max-h-[200px] w-full resize-none bg-transparent px-1 text-[14px] leading-relaxed font-normal text-foreground placeholder:font-light placeholder:text-muted-foreground/60 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-60"
                   aria-label={t("input.ariaLabel")}
                 />
               </PopoverAnchor>

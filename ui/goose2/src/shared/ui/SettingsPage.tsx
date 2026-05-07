@@ -25,7 +25,7 @@ export function SettingsPage({
       <div className="sticky top-0 z-20 -mx-6 border-b bg-background px-6 py-4">
         <div className="flex items-center justify-between gap-3 pr-12">
           <div className="min-w-0 flex-1">
-            <h3 className="max-w-prose truncate font-display text-sm font-semibold leading-5 tracking-tight">
+            <h3 className="text-heading-section max-w-prose truncate">
               {title}
             </h3>
             {description ? (

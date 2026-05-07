@@ -81,7 +81,7 @@ export function SidebarProjectsSection({
       >
         <span
           className={cn(
-            "text-[12px] font-normal text-muted-foreground/80 flex-1 pl-3",
+            "text-label uppercase text-muted-foreground/80 flex-1 pl-3",
             labelTransition,
             labelVisible
               ? "opacity-100 w-auto"
@@ -98,7 +98,7 @@ export function SidebarProjectsSection({
             onClick={onCreateProject}
             title={t("actions.newProject")}
             className={cn(
-              "mr-1 h-6 flex-shrink-0 rounded-full bg-muted px-2 text-[11px] text-foreground opacity-0 transition-opacity duration-150 ease-out hover:bg-muted/80 hover:text-foreground",
+              "mr-1 h-6 flex-shrink-0 rounded-full bg-muted px-2 text-pill text-foreground opacity-0 transition-opacity duration-150 ease-out hover:bg-muted/80 hover:text-foreground",
               "pointer-events-none group-hover/projects-header:pointer-events-auto group-hover/projects-header:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100",
             )}
           >

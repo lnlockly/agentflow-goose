@@ -91,7 +91,7 @@ export function ProviderStep({
       <h2 className="mt-6 text-[22px] font-semibold tracking-tight text-foreground">
         {hasUsableDefaults ? t("provider.readyTitle") : t("provider.title")}
       </h2>
-      <p className="mt-2 max-w-[420px] text-sm leading-6 text-muted-foreground">
+      <p className="mt-2 max-w-[420px] text-body-subtle text-muted-foreground">
         {hasUsableDefaults
           ? t("provider.readyDescription")
           : t("provider.description")}
@@ -120,10 +120,10 @@ export function ProviderStep({
                   )}
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-sm font-medium text-foreground">
+                  <span className="truncate text-heading-item text-foreground">
                     {entry.providerName}
                   </span>
-                  <span className="truncate text-xs text-muted-foreground">
+                  <span className="truncate text-meta text-muted-foreground">
                     {model?.name ?? entry.defaultModel}
                   </span>
                 </span>
@@ -137,7 +137,7 @@ export function ProviderStep({
       ) : null}
 
       {!hasUsableDefaults && credentialLoading ? (
-        <p className="mt-8 w-full rounded-[14px] border border-border px-3 py-3 text-sm text-muted-foreground">
+        <p className="mt-8 w-full rounded-[14px] border border-border px-3 py-3 text-body-subtle text-muted-foreground">
           {t("provider.checking")}
         </p>
       ) : null}
@@ -145,7 +145,7 @@ export function ProviderStep({
       {providerError ? (
         <p
           role="alert"
-          className="mt-4 w-full rounded-[10px] bg-danger/10 px-3 py-2 text-xs text-danger"
+          className="mt-4 w-full rounded-[10px] bg-danger/10 px-3 py-2 text-meta text-danger"
         >
           {providerError}
         </p>
@@ -157,9 +157,9 @@ export function ProviderStep({
           <button
             type="button"
             onClick={() => setShowProviderSetup(true)}
-            className="mt-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="mt-4 inline-flex items-center gap-1.5 text-body-subtle text-muted-foreground transition-colors hover:text-foreground"
           >
-            <span aria-hidden="true" className="text-base leading-none">
+            <span aria-hidden="true" className="text-body leading-none">
               +
             </span>
             {t("provider.addDifferent")}
@@ -170,7 +170,7 @@ export function ProviderStep({
       {showProviderSetup ? (
         <div className="mt-6 w-full space-y-2 text-left">
           {hasUsableDefaults ? (
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            <p className="text-label uppercase text-muted-foreground">
               {t("provider.setupTitle")}
             </p>
           ) : null}

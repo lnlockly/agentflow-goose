@@ -301,10 +301,10 @@ export function MessageTimeline({
     return (
       <div className={cn("flex flex-1 items-center justify-center", className)}>
         <div className="text-center">
-          <p className="text-lg font-medium font-display tracking-tight text-muted-foreground">
+          <p className="text-heading-section text-muted-foreground">
             {t("timeline.emptyTitle")}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-body-subtle text-muted-foreground">
             {t("timeline.emptyDescription")}
           </p>
         </div>
@@ -342,7 +342,7 @@ export function MessageTimeline({
             >
               {showDateSeparator && (
                 <div className="my-4 px-4 text-center">
-                  <span className="text-[11px] font-medium text-muted-foreground">
+                  <span className="text-label uppercase text-muted-foreground">
                     {formatDateSeparator(
                       message.created,
                       t("timeline.today"),

@@ -80,9 +80,11 @@ export function SkillDetailPage({
 
   if (!skill) {
     return (
-      <div className="flex h-full flex-col justify-center px-1 text-sm text-muted-foreground">
-        <p className="text-sm text-foreground">{t("view.detailEmptyTitle")}</p>
-        <p className="mt-1 text-sm text-muted-foreground">
+      <div className="flex h-full flex-col justify-center px-1 text-body-subtle text-muted-foreground">
+        <p className="text-heading-item text-foreground">
+          {t("view.detailEmptyTitle")}
+        </p>
+        <p className="mt-1 text-body-subtle text-muted-foreground">
           {t("view.detailEmptyDescription")}
         </p>
       </div>
@@ -180,7 +182,7 @@ export function SkillDetailPage({
       {isBuiltin ? (
         <section className="space-y-4 pb-6">
           <DetailField label={t("view.instructions")} />
-          <MessageResponse className="min-w-0 text-sm leading-6">
+          <MessageResponse className="min-w-0 text-body-subtle">
             {skill.instructions || " "}
           </MessageResponse>
         </section>
@@ -210,7 +212,7 @@ export function SkillDetailPage({
                     {skill.projectLinks.map((project) => (
                       <div key={`${project.id}-${project.workingDir}`}>
                         <p>{project.name}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-meta text-muted-foreground">
                           {project.workingDir}
                         </p>
                       </div>
@@ -231,7 +233,7 @@ export function SkillDetailPage({
         >
           <section className="space-y-4 pb-6">
             <DetailField label={t("view.instructions")} />
-            <MessageResponse className="min-w-0 text-sm leading-6">
+            <MessageResponse className="min-w-0 text-body-subtle">
               {skill.instructions || " "}
             </MessageResponse>
           </section>

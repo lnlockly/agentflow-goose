@@ -134,7 +134,7 @@ export function SkillEditor({
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="max-w-lg max-h-[85vh] flex flex-col gap-0 p-0">
         <DialogHeader className="shrink-0 px-5 py-4">
-          <DialogTitle className="text-sm">
+          <DialogTitle className="text-heading-item">
             {isEditing ? t("dialog.editTitle") : t("dialog.newTitle")}
           </DialogTitle>
         </DialogHeader>
@@ -146,7 +146,7 @@ export function SkillEditor({
         >
           {/* Name */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium text-muted-foreground">
+            <Label className="text-meta font-medium text-muted-foreground">
               {t("dialog.name")} <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -155,7 +155,7 @@ export function SkillEditor({
               placeholder={t("dialog.namePlaceholder")}
             />
             {name.length > 0 && !nameValid && (
-              <p className="text-xs text-destructive">
+              <p className="text-meta text-destructive">
                 {t("dialog.nameValidation")}
               </p>
             )}
@@ -164,7 +164,7 @@ export function SkillEditor({
           {/* Save location — only shown when creating */}
           {!isEditing && projectsWithDirs.length > 0 && (
             <div className="space-y-1">
-              <Label className="text-xs font-medium text-muted-foreground">
+              <Label className="text-meta font-medium text-muted-foreground">
                 {t("dialog.saveLocation")}
               </Label>
               <Select value={saveLocation} onValueChange={setSaveLocation}>
@@ -192,7 +192,7 @@ export function SkillEditor({
 
           {/* Description */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium text-muted-foreground">
+            <Label className="text-meta font-medium text-muted-foreground">
               {t("dialog.description")}{" "}
               <span className="text-destructive">*</span>
             </Label>
@@ -215,7 +215,7 @@ export function SkillEditor({
 
           {/* Instructions */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium text-muted-foreground">
+            <Label className="text-meta font-medium text-muted-foreground">
               {t("dialog.instructions")}
             </Label>
             <Textarea
@@ -223,12 +223,12 @@ export function SkillEditor({
               onChange={(e) => setInstructions(e.target.value)}
               rows={10}
               placeholder={t("dialog.instructionsPlaceholder")}
-              className="text-xs font-mono leading-relaxed"
+              className="font-mono text-meta leading-relaxed"
             />
           </div>
 
           {/* Error */}
-          {error && <p className="text-xs text-destructive">{error}</p>}
+          {error && <p className="text-meta text-destructive">{error}</p>}
         </form>
 
         <DialogFooter className="shrink-0 border-t px-5 py-4">

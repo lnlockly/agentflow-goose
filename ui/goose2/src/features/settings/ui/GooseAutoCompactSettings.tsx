@@ -79,10 +79,10 @@ export function GooseAutoCompactSettings() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="min-w-0 text-sm font-medium">
+        <p className="min-w-0 text-heading-item">
           {t(`${translationKeyPrefix}.label`)}
         </p>
-        <div className="flex items-center gap-1.5 text-xs text-foreground">
+        <div className="flex items-center gap-1.5 text-meta text-foreground">
           {isSavingThreshold ? (
             <Loader2 className="size-3 animate-spin text-muted-foreground" />
           ) : null}

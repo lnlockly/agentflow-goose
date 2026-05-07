@@ -128,14 +128,14 @@ export function DoctorSettings() {
       }
     >
       {loading ? (
-        <div className="flex min-h-[160px] items-center justify-center gap-2 text-sm text-muted-foreground">
+        <div className="flex min-h-[160px] items-center justify-center gap-2 text-body-subtle text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
           {t("doctor.running")}
         </div>
       ) : report ? (
         <div className="space-y-6">
           <div className="mx-auto w-full max-w-xl space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <h4 className="text-label uppercase text-muted-foreground">
               {t("doctor.tools")}
             </h4>
             <div className="space-y-2">
@@ -151,7 +151,7 @@ export function DoctorSettings() {
 
           {agentChecks.length > 0 && (
             <div className="mx-auto w-full max-w-xl space-y-2">
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <h4 className="text-label uppercase text-muted-foreground">
                 {t("doctor.agents")}
               </h4>
               <div className="space-y-2">
@@ -167,7 +167,7 @@ export function DoctorSettings() {
           )}
         </div>
       ) : (
-        <div className="flex min-h-[160px] items-center justify-center text-sm text-muted-foreground">
+        <div className="flex min-h-[160px] items-center justify-center text-body-subtle text-muted-foreground">
           {t("doctor.empty")}
         </div>
       )}

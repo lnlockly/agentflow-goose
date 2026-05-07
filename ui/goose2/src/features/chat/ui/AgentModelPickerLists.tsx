@@ -112,7 +112,7 @@ export function RecommendedModelList({
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div className="shrink-0 px-2 py-1.5 text-sm font-semibold">
+      <div className="shrink-0 px-2 py-1.5 text-heading-section text-foreground">
         {t("toolbar.model")}
       </div>
       <ScrollArea className="min-h-0 min-w-0 flex-1">
@@ -161,7 +161,7 @@ export function RecommendedModelList({
           <button
             type="button"
             onClick={onShowAll}
-            className="flex w-full items-center gap-1.5 rounded-sm px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex w-full items-center gap-1.5 rounded-sm px-2 py-1.5 text-meta text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <IconSearch className="size-3.5" />
             <span>{t("toolbar.showAllModels")}</span>
@@ -261,7 +261,7 @@ export function AllModelsList({
                     <div className="min-w-0 flex-1 overflow-hidden">
                       <div className="truncate">{displayName}</div>
                       {showModelId ? (
-                        <div className="truncate text-xs text-muted-foreground">
+                        <div className="truncate text-meta text-muted-foreground">
                           {model.id}
                         </div>
                       ) : null}
@@ -276,7 +276,7 @@ export function AllModelsList({
           </div>
         </ScrollArea>
       ) : (
-        <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+        <div className="px-3 py-4 text-center text-body-subtle text-muted-foreground">
           {t("toolbar.noSearchResults")}
         </div>
       )}

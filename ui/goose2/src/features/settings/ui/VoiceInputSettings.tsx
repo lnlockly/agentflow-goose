@@ -217,7 +217,7 @@ export function VoiceInputSettings() {
   if (loading) {
     return (
       <SettingsPage title={t("general.voiceInput.label")}>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-meta text-muted-foreground">
           {t("common:labels.loading")}
         </p>
       </SettingsPage>
@@ -230,7 +230,7 @@ export function VoiceInputSettings() {
       contentClassName="space-y-4"
     >
       <div className="space-y-2 rounded-lg border border-border px-3 py-3">
-        <p className="text-xs font-medium text-foreground">
+        <p className="text-meta font-medium text-foreground">
           {t("general.voiceInput.providerLabel")}
         </p>
         <Select
@@ -263,10 +263,10 @@ export function VoiceInputSettings() {
       <div className="space-y-2 rounded-lg border border-border px-3 py-3">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-medium text-foreground">
+            <p className="text-meta font-medium text-foreground">
               {t("general.voiceInput.microphoneLabel")}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-meta text-muted-foreground">
               {isMicrophoneSupported
                 ? t("general.voiceInput.microphoneDescription")
                 : t("general.voiceInput.microphoneUnavailable")}
@@ -288,13 +288,13 @@ export function VoiceInputSettings() {
         {!devicesError &&
         !hasPermission &&
         permissionStatus === "not_determined" ? (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-meta text-muted-foreground">
             {t("general.voiceInput.microphoneAccessPrompt")}
           </p>
         ) : null}
 
         {devicesError ? (
-          <p className="text-xs text-muted-foreground">{devicesError}</p>
+          <p className="text-meta text-muted-foreground">{devicesError}</p>
         ) : null}
 
         {isMicrophoneSupported && hasPermission ? (
@@ -330,10 +330,10 @@ export function VoiceInputSettings() {
           {selectedStatus.usesProviderConfig ? (
             <div className="space-y-3 rounded-lg border border-border px-3 py-3">
               <div>
-                <p className="text-xs font-medium text-foreground">
+                <p className="text-meta font-medium text-foreground">
                   {t("general.voiceInput.providerConfigLabel")}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-1 text-meta text-muted-foreground">
                   {t("general.voiceInput.providerConfigDescription")}
                 </p>
               </div>
@@ -354,10 +354,10 @@ export function VoiceInputSettings() {
               {isEditingApiKey ? (
                 <>
                   <div>
-                    <p className="text-xs font-medium text-foreground">
+                    <p className="text-meta font-medium text-foreground">
                       {t("general.voiceInput.apiKeyLabel")}
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="mt-1 text-meta text-muted-foreground">
                       {t("general.voiceInput.apiKeyDescription")}
                     </p>
                   </div>
@@ -394,10 +394,10 @@ export function VoiceInputSettings() {
               ) : (
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-medium text-foreground">
+                    <p className="text-meta font-medium text-foreground">
                       {t("general.voiceInput.apiKeyLabel")}
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="mt-1 text-meta text-muted-foreground">
                       {selectedStatus.configured
                         ? t("general.voiceInput.apiKeyConfigured")
                         : t("general.voiceInput.apiKeyDescription")}
@@ -442,7 +442,7 @@ export function VoiceInputSettings() {
             />
           ) : (selectedStatus.availableModels ?? []).length > 0 ? (
             <div className="space-y-2 rounded-lg border border-border px-3 py-3">
-              <p className="text-xs font-medium text-foreground">
+              <p className="text-meta font-medium text-foreground">
                 {t("general.voiceInput.modelLabel")}
               </p>
               <Select
@@ -460,7 +460,7 @@ export function VoiceInputSettings() {
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-meta text-muted-foreground">
                 {(selectedStatus.availableModels ?? []).find(
                   (model) => model.id === currentModelValue,
                 )?.description ?? ""}
@@ -473,11 +473,11 @@ export function VoiceInputSettings() {
       <div className="space-y-2 rounded-lg border border-border px-3 py-3">
         <label
           htmlFor="voice-auto-submit-phrases"
-          className="text-xs font-medium text-foreground"
+          className="text-meta font-medium text-foreground"
         >
           {t("general.voiceInput.autoSubmitLabel")}
         </label>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-meta text-muted-foreground">
           {t("general.voiceInput.autoSubmitDescription")}
         </p>
         <Input
@@ -490,7 +490,7 @@ export function VoiceInputSettings() {
         />
       </div>
 
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {error ? <p className="text-meta text-destructive">{error}</p> : null}
     </SettingsPage>
   );
 }

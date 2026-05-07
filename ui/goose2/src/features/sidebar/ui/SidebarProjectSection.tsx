@@ -109,7 +109,7 @@ export function SidebarProjectSection({
           size="sm"
           onClick={() => toggleProject(project.id)}
           className={cn(
-            "flex-1 min-w-0 justify-start gap-2 rounded-md px-3 py-2 text-sm font-normal",
+            "flex-1 min-w-0 justify-start gap-2 rounded-md px-3 py-2 text-chrome font-normal",
             PROJECT_ROW_TEXT_CLASS,
           )}
         >

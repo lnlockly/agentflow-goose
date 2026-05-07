@@ -115,7 +115,7 @@ export function PersonaGallery({
         )}
       >
         <Plus className="size-8" />
-        <span className="text-sm font-medium">{t("gallery.new")}</span>
+        <span className="text-heading-item">{t("gallery.new")}</span>
         {onImportFile && (
           <span className="text-[11px] text-muted-foreground">
             {t("gallery.dropFile")}

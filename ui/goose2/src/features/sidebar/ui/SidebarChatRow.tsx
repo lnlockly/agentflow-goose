@@ -20,7 +20,7 @@ import { SessionActivityIndicator } from "@/shared/ui/SessionActivityIndicator";
 const INACTIVE_CHAT_ROW_CLASS =
   "text-foreground hover:bg-background-alt hover:text-foreground";
 const ACTIVE_CHAT_ROW_CLASS =
-  "bg-background-alt font-normal text-foreground hover:bg-background-alt hover:text-foreground";
+  "bg-background-alt text-foreground hover:bg-background-alt hover:text-foreground";
 
 interface SidebarChatRowProps {
   id: string;
@@ -125,7 +125,7 @@ export function SidebarChatRow({
               cancelRename();
             }
           }}
-          className="flex-1 min-w-0 px-3 text-sm font-normal"
+          className="flex-1 min-w-0 px-3 text-chrome"
           style={{ height: 32 }}
         />
       </div>
@@ -165,7 +165,7 @@ export function SidebarChatRow({
         }}
         title={t("actions.renameHint")}
         className={cn(
-          "flex-1 min-w-0 justify-start gap-2 rounded-md pr-8 py-2 text-sm font-normal active:cursor-grabbing",
+          "flex-1 min-w-0 justify-start gap-2 rounded-md pr-8 py-2 text-chrome active:cursor-grabbing",
           nested ? "pl-9" : "pl-3",
           isActive ? ACTIVE_CHAT_ROW_CLASS : INACTIVE_CHAT_ROW_CLASS,
         )}

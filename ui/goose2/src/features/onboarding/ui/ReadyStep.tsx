@@ -35,7 +35,7 @@ export function ReadyStep({
       <h2 className="mt-6 text-[22px] font-semibold tracking-tight text-foreground">
         {t("tour.title")}
       </h2>
-      <p className="mt-2 max-w-[420px] text-sm leading-6 text-muted-foreground">
+      <p className="mt-2 max-w-[420px] text-body-subtle text-muted-foreground">
         {selectedSetup?.modelName
           ? t("tour.readyWithModel", { model: selectedSetup.modelName })
           : t("tour.description")}
@@ -46,10 +46,10 @@ export function ReadyStep({
           <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
             {t("tour.summary.defaultTitle")}
           </p>
-          <p className="mt-1.5 text-sm font-medium text-foreground">
+          <p className="mt-1.5 text-heading-item text-foreground">
             {selectedSetup?.modelName ?? t("tour.summary.defaultFallback")}
           </p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+          <p className="mt-1 text-meta text-muted-foreground">
             {t("tour.summary.defaultDescription")}
           </p>
         </div>
@@ -57,10 +57,10 @@ export function ReadyStep({
           <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
             {t("tour.summary.extensionsTitle")}
           </p>
-          <p className="mt-1.5 text-sm font-medium text-foreground">
+          <p className="mt-1.5 text-heading-item text-foreground">
             {formatCount("extensions", extensionCount, t)}
           </p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+          <p className="mt-1 text-meta text-muted-foreground">
             {t("tour.summary.extensionsDescription")}
           </p>
         </div>
@@ -68,10 +68,10 @@ export function ReadyStep({
           <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
             {t("tour.summary.skillsTitle")}
           </p>
-          <p className="mt-1.5 text-sm font-medium text-foreground">
+          <p className="mt-1.5 text-heading-item text-foreground">
             {formatCount("skills", skillCount, t)}
           </p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+          <p className="mt-1 text-meta text-muted-foreground">
             {t("tour.summary.skillsDescription")}
           </p>
         </div>

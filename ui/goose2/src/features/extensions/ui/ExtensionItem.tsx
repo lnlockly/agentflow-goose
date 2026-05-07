@@ -45,9 +45,9 @@ export function ExtensionItem({
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate text-sm font-medium">{displayName}</span>
+          <span className="text-heading-item truncate">{displayName}</span>
         </div>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+        <p className="mt-0.5 text-body-subtle text-muted-foreground truncate">
           {getSubtitle(extension)}
         </p>
       </div>

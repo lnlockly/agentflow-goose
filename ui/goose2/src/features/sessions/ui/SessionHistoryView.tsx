@@ -192,10 +192,8 @@ export function SessionHistoryView({
         <div className="page-transition mx-auto flex w-full max-w-5xl flex-col gap-5 px-6 py-8">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h1 className="font-display text-lg font-semibold tracking-tight">
-                {t("history.title")}
-              </h1>
-              <p className="text-xs text-muted-foreground">
+              <h1 className="text-heading-page">{t("history.title")}</h1>
+              <p className="text-body-subtle text-muted-foreground">
                 {t("history.subtitle")}
               </p>
             </div>
@@ -223,7 +221,7 @@ export function SessionHistoryView({
           />
 
           {search.error && (
-            <p className="text-xs text-danger">{t("history.searchError")}</p>
+            <p className="text-meta text-danger">{t("history.searchError")}</p>
           )}
 
           {search.submittedQuery ? (
@@ -272,13 +270,13 @@ export function SessionHistoryView({
               <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
                 <History className="h-10 w-10 opacity-30" />
                 <div className="text-center">
-                  <p className="text-sm font-medium">
+                  <p className="text-heading-item">
                     {search.isSearching
                       ? t("history.searching")
                       : t("history.emptyNoMatches")}
                   </p>
                   {!search.isSearching && (
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="mt-1 text-meta text-muted-foreground">
                       {t("history.emptyNoMatchesHint")}
                     </p>
                   )}
@@ -288,7 +286,7 @@ export function SessionHistoryView({
           ) : dateGroups.length > 0 ? (
             dateGroups.map((group) => (
               <div key={group.label} className="space-y-2">
-                <h2 className="sticky top-0 z-10 bg-background py-1 text-sm font-medium text-muted-foreground">
+                <h2 className="sticky top-0 z-10 bg-background py-1 text-label uppercase text-muted-foreground">
                   {group.label}
                 </h2>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -333,8 +331,8 @@ export function SessionHistoryView({
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
               <History className="h-10 w-10 opacity-30" />
               <div className="text-center">
-                <p className="text-sm font-medium">{t("history.emptyTitle")}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="text-heading-item">{t("history.emptyTitle")}</p>
+                <p className="mt-1 text-meta text-muted-foreground">
                   {t("history.emptyHint")}
                 </p>
               </div>

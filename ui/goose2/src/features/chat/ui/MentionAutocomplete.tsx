@@ -126,7 +126,7 @@ export function MentionAutocomplete({
           >
             <MentionAvatar persona={persona} />
             <div className="flex min-w-0 flex-col">
-              <span className="text-sm font-medium">{persona.displayName}</span>
+              <span className="text-heading-item">{persona.displayName}</span>
               {persona.provider && (
                 <span className="text-[10px] text-muted-foreground">
                   {persona.provider}
@@ -169,7 +169,7 @@ export function MentionAutocomplete({
                 <SkillIcon className="h-3.5 w-3.5" />
               </div>
               <div className="flex min-w-0 flex-col">
-                <span className="text-sm font-medium">{skill.name}</span>
+                <span className="text-heading-item">{skill.name}</span>
                 <span className="truncate text-[10px] text-muted-foreground">
                   {skill.description || skill.sourceLabel}
                 </span>
@@ -211,7 +211,7 @@ export function MentionAutocomplete({
                 <IconFile className="size-4 shrink-0" />
               )}
               <div className="flex min-w-0 flex-col">
-                <span className="truncate text-sm font-medium">
+                <span className="truncate text-heading-item">
                   {file.filename}
                 </span>
                 <span className="truncate text-[10px] text-muted-foreground">

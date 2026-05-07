@@ -130,7 +130,7 @@ export function CustomProviderForm({
     }
 
     return (
-      <div role="alert" className="space-y-0.5 text-xs text-danger">
+      <div role="alert" className="space-y-0.5 text-meta text-danger">
         {issues.map((issue) => (
           <p key={`${issue.key}-${issue.index ?? "field"}`}>
             {t(translationKey(issue.key))}
@@ -160,7 +160,7 @@ export function CustomProviderForm({
             placeholder={t("providers.custom.fields.displayNamePlaceholder")}
             disabled={disabled}
             spellCheck={false}
-            className="h-8 text-xs"
+            className="h-8 text-meta"
           />
           {renderFieldErrors("displayName")}
         </div>
@@ -178,7 +178,7 @@ export function CustomProviderForm({
           >
             <SelectTrigger
               id="custom-provider-engine"
-              className="h-8 w-full text-xs"
+              className="h-8 w-full text-meta"
             >
               <SelectValue />
             </SelectTrigger>
@@ -204,7 +204,7 @@ export function CustomProviderForm({
             placeholder={t("providers.custom.fields.apiUrlPlaceholder")}
             disabled={disabled}
             spellCheck={false}
-            className="h-8 text-xs"
+            className="h-8 text-meta"
           />
           {renderFieldErrors("apiUrl")}
         </div>
@@ -220,7 +220,7 @@ export function CustomProviderForm({
             placeholder={t("providers.custom.fields.basePathPlaceholder")}
             disabled={disabled}
             spellCheck={false}
-            className="h-8 text-xs"
+            className="h-8 text-meta"
           />
         </div>
       </section>
@@ -231,7 +231,7 @@ export function CustomProviderForm({
             <Label htmlFor="custom-provider-auth">
               {t("providers.custom.fields.requiresAuth")}
             </Label>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-meta text-muted-foreground">
               {t("providers.custom.fields.requiresAuthDescription")}
             </p>
           </div>
@@ -264,7 +264,7 @@ export function CustomProviderForm({
                 autoComplete="new-password"
                 data-1p-ignore
                 data-lpignore
-                className="h-8 text-xs"
+                className="h-8 text-meta"
               />
               <Button
                 type="button"
@@ -291,10 +291,7 @@ export function CustomProviderForm({
       </section>
 
       <fieldset className="space-y-2">
-        <legend
-          id="custom-provider-models-label"
-          className="text-sm font-medium"
-        >
+        <legend id="custom-provider-models-label" className="text-heading-item">
           {t("providers.custom.fields.models")}
         </legend>
         <ProviderModelListEditor
@@ -311,7 +308,7 @@ export function CustomProviderForm({
             <Label htmlFor="custom-provider-streaming">
               {t("providers.custom.fields.supportsStreaming")}
             </Label>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-meta text-muted-foreground">
               {t("providers.custom.fields.supportsStreamingDescription")}
             </p>
           </div>
@@ -329,7 +326,7 @@ export function CustomProviderForm({
       <fieldset className="space-y-2">
         <legend
           id="custom-provider-headers-label"
-          className="text-sm font-medium"
+          className="text-heading-item"
         >
           {t("providers.custom.fields.headers")}
         </legend>
@@ -342,7 +339,7 @@ export function CustomProviderForm({
       </fieldset>
 
       {error ? (
-        <p role="alert" className="text-xs text-danger">
+        <p role="alert" className="text-meta text-danger">
           {error}
         </p>
       ) : null}

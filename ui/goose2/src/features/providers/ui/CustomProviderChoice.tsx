@@ -33,9 +33,9 @@ export function CustomProviderChoice({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="truncate text-sm">{provider.displayName}</p>
+          <p className="truncate text-heading-item">{provider.displayName}</p>
           {!provider.configured ? (
-            <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xxs text-muted-foreground">
+            <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-pill text-muted-foreground">
               {t("providers.custom.notConfigured")}
             </span>
           ) : null}

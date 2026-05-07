@@ -40,7 +40,7 @@ function TreeStatusRow({
 }) {
   return (
     <div
-      className={`px-2 py-1 text-xs ${
+      className={`px-2 py-1 text-meta ${
         destructive ? "text-destructive" : "text-muted-foreground"
       }`}
     >
@@ -243,7 +243,9 @@ export function FilesList({ projectWorkingDirs }: FilesListProps) {
   if (roots.length === 0) {
     return (
       <div className="flex h-32 items-center justify-center px-4 text-center">
-        <p className="text-sm text-muted-foreground">{t("files.empty")}</p>
+        <p className="text-body-subtle text-muted-foreground">
+          {t("files.empty")}
+        </p>
       </div>
     );
   }

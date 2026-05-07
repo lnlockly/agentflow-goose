@@ -94,7 +94,7 @@ export function AgentConfig({
     >
       {/* Name */}
       <div className="space-y-1">
-        <Label className="text-xs font-medium text-muted-foreground">
+        <Label className="text-meta font-medium text-muted-foreground">
           {t("config.name")} <span className="text-destructive">*</span>
         </Label>
         <Input
@@ -107,7 +107,7 @@ export function AgentConfig({
 
       {/* Persona selector */}
       <div className="space-y-1">
-        <Label className="text-xs font-medium text-muted-foreground">
+        <Label className="text-meta font-medium text-muted-foreground">
           {t("config.persona")}
         </Label>
         <Select
@@ -133,7 +133,7 @@ export function AgentConfig({
 
       {/* Provider */}
       <div className="space-y-1">
-        <Label className="text-xs font-medium text-muted-foreground">
+        <Label className="text-meta font-medium text-muted-foreground">
           {t("config.provider")}
           {selectedPersona?.provider && (
             <span className="ml-1 text-muted-foreground">
@@ -160,7 +160,7 @@ export function AgentConfig({
 
       {/* Model override */}
       <div className="space-y-1">
-        <Label className="text-xs font-medium text-muted-foreground">
+        <Label className="text-meta font-medium text-muted-foreground">
           {t("config.model")}
           {selectedPersona?.model && (
             <span className="ml-1 text-muted-foreground">
@@ -180,7 +180,7 @@ export function AgentConfig({
         <button
           type="button"
           onClick={() => setPromptExpanded((v) => !v)}
-          className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          className="text-meta font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
           {promptExpanded
             ? t("config.systemPromptOverrideExpanded")

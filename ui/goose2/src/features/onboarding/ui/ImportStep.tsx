@@ -42,20 +42,20 @@ export function ImportStep({
       <h2 className="mt-6 text-[22px] font-semibold tracking-tight text-foreground">
         {t("import.title")}
       </h2>
-      <p className="mt-2 max-w-[420px] text-sm leading-6 text-muted-foreground">
+      <p className="mt-2 max-w-[420px] text-body-subtle text-muted-foreground">
         {t("import.description")}
       </p>
 
       <div className="mt-8 w-full space-y-2">
         {scanLoading ? (
-          <div className="flex items-center justify-center gap-2 rounded-[14px] border border-border px-4 py-5 text-sm text-muted-foreground">
+          <div className="flex items-center justify-center gap-2 rounded-[14px] border border-border px-4 py-5 text-body-subtle text-muted-foreground">
             <Spinner className="size-4 text-foreground" />
             {t("import.scanning")}
           </div>
         ) : !hasCandidates ? (
           <div className="rounded-[14px] border border-border px-4 py-5 text-left">
-            <p className="text-sm font-medium">{t("import.emptyTitle")}</p>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="text-heading-item">{t("import.emptyTitle")}</p>
+            <p className="mt-1 text-body-subtle text-muted-foreground">
               {t("import.emptyDescription")}
             </p>
           </div>
@@ -86,14 +86,14 @@ export function ImportStep({
                   />
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-sm font-medium text-foreground">
+                  <span className="truncate text-heading-item text-foreground">
                     {candidate.displayName}
                   </span>
-                  <span className="mt-0.5 truncate text-xs text-muted-foreground">
+                  <span className="mt-0.5 truncate text-meta text-muted-foreground">
                     {formatCandidateCounts(candidate, t)}
                   </span>
                   {warnings.length > 0 ? (
-                    <span className="mt-1 block text-xs text-text-warning">
+                    <span className="mt-1 block text-meta text-text-warning">
                       {warnings.join(" ")}
                     </span>
                   ) : null}
@@ -120,7 +120,7 @@ export function ImportStep({
       {importError ? (
         <p
           role="alert"
-          className="mt-4 w-full rounded-[10px] bg-danger/10 px-3 py-2 text-xs text-danger"
+          className="mt-4 w-full rounded-[10px] bg-danger/10 px-3 py-2 text-meta text-danger"
         >
           {importError}
         </p>

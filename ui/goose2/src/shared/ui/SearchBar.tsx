@@ -17,14 +17,14 @@ const searchBarSizes = {
       "rounded-md border border-border-soft px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-transparent hover:text-foreground",
     icon: "left-3 size-3.5",
     input:
-      "h-auto border-none bg-transparent px-0 pl-6 pr-0 text-xs font-normal shadow-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0",
+      "h-auto border-none bg-transparent px-0 pl-6 pr-0 text-meta font-normal shadow-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0",
     inputVariant: "ghost" as const,
   },
   default: {
     wrapper: "",
     icon: "left-3 size-4",
     input:
-      "rounded-lg border-border-soft bg-background pr-3 pl-9 text-sm font-normal hover:border-border-soft focus-visible:border-ring",
+      "rounded-lg border-border-soft bg-background pr-3 pl-9 text-meta font-normal hover:border-border-soft focus-visible:border-ring",
     inputVariant: "default" as const,
   },
 } as const;

@@ -83,7 +83,7 @@ export function SidebarRecentsSection({
       >
         <span
           className={cn(
-            "text-[12px] font-normal text-muted-foreground/80 flex-1 pl-3",
+            "text-label uppercase text-muted-foreground/80 flex-1 pl-3",
             labelTransition,
             labelVisible
               ? "opacity-100 w-auto"

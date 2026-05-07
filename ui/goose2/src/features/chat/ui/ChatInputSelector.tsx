@@ -120,7 +120,7 @@ export function ChatInputSelector({
                       {item.label}
                     </span>
                     {item.description ? (
-                      <span className="block truncate text-xs text-muted-foreground">
+                      <span className="block truncate text-meta text-muted-foreground">
                         {item.description}
                       </span>
                     ) : null}

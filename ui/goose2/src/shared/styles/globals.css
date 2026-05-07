@@ -193,49 +193,6 @@
   --sidebar-border: var(--border-default);
   --sidebar-ring: var(--border-default);
 
-  /* Heading typography — magazine scale */
-  --heading-display-font-size: clamp(64px, 8vw, 96px);
-  --heading-display-line-height: 0.88;
-  --heading-display-letter-spacing: -0.05em;
-  --heading-display-font-weight: 900;
-
-  --heading-section-font-size: clamp(44px, 5vw, 64px);
-  --heading-section-line-height: 0.95;
-  --heading-section-letter-spacing: -0.035em;
-  --heading-section-font-weight: 700;
-
-  --heading-sub-font-size: clamp(28px, 3vw, 40px);
-  --heading-sub-line-height: 1;
-  --heading-sub-letter-spacing: -0.02em;
-  --heading-sub-font-weight: 700;
-
-  --heading-card-font-size: clamp(20px, 2vw, 28px);
-  --heading-card-line-height: 1.1;
-  --heading-card-letter-spacing: -0.01em;
-  --heading-card-font-weight: 600;
-
-  /* Display — hero-scale fluid type */
-  --display-size: clamp(3rem, 12vw, 12rem);
-  --display-line-height: 0.85;
-  --display-letter-spacing: -0.05em;
-
-  /* Body — longform reading */
-  --body-reading-size: clamp(1rem, 1.3vw, 1.25rem);
-  --body-reading-line-height: 1.65;
-  --body-reading-letter-spacing: -0.01em;
-
-  /* Label — uppercase kickers, bylines, category tags */
-  --label-font-size: 11px;
-  --label-letter-spacing: 0.12em;
-  --label-font-weight: 600;
-  --label-line-height: 1.2;
-
-  /* Pull quote — visual punctuation for longform */
-  --pullquote-size: clamp(1.5rem, 3vw, 2.5rem);
-  --pullquote-line-height: 1.3;
-  --pullquote-weight: 300;
-  --pullquote-letter-spacing: -0.02em;
-
   /* Page layout */
   --page-container-max-width: 1440px;
   --page-container-side-gutter: 20px;
@@ -451,13 +408,127 @@
   --color-surface-dark-muted: var(--surface-dark-muted);
   --color-surface-dark-border: var(--surface-dark-border);
 
-  /* fonts — no bundled fonts; consumers bring their own */
+  /* fonts — Cash Sans loaded via @font-face below */
   --font-sans:
-    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    "Cash Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
+    Roboto, sans-serif;
   --font-mono: "Geist Mono", monospace;
   --font-serif: serif;
   --font-display:
-    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    "Cash Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
+    Roboto, sans-serif;
+
+  /* ─────────────────────────────────────────────────────────
+     Typography primitives — MCP UI app-bridge spec scale.
+     Names match OG Goose / @modelcontextprotocol/ext-apps so
+     MCP UI iframes inherit a coherent scale from the host.
+     ───────────────────────────────────────────────────────── */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --font-text-xs-size: 0.75rem;
+  --font-text-xs-line-height: 1rem;
+  --font-text-sm-size: 0.875rem;
+  --font-text-sm-line-height: 1.25rem;
+  --font-text-md-size: 1rem;
+  --font-text-md-line-height: 1.5rem;
+  --font-text-lg-size: 1.125rem;
+  --font-text-lg-line-height: 1.75rem;
+
+  --font-heading-xs-size: 1rem;
+  --font-heading-xs-line-height: 1.5rem;
+  --font-heading-sm-size: 1.125rem;
+  --font-heading-sm-line-height: 1.75rem;
+  --font-heading-md-size: 1.25rem;
+  --font-heading-md-line-height: 1.75rem;
+  --font-heading-lg-size: 1.5rem;
+  --font-heading-lg-line-height: 2rem;
+  --font-heading-xl-size: 1.875rem;
+  --font-heading-xl-line-height: 2.25rem;
+  --font-heading-2xl-size: 2.25rem;
+  --font-heading-2xl-line-height: 2.5rem;
+  --font-heading-3xl-size: 3rem;
+  --font-heading-3xl-line-height: 3.5rem;
+
+  /* goose2 chrome density slot (13px Light) — outside MCP scale */
+  --font-text-13-size: 0.8125rem;
+  --font-text-13-line-height: 1.125rem;
+
+  /* goose2 hero — outside MCP scale, for 1:25 home time */
+  --font-display-size: 5.25rem;
+  --font-display-line-height: 0.95;
+
+  /* ─────────────────────────────────────────────────────────
+     Semantic typography aliases — the consumer API.
+     Each generates a single Tailwind utility (e.g. text-heading-page)
+     that bundles size + line-height + weight + tracking.
+
+     Values are inlined as literals (not var() references to the
+     primitives above) because Tailwind v4 silently skips token
+     registration when a --text-* alias resolves through var().
+     The MCP primitives still exist in :root via @theme inline for
+     iframe consumers; the literal duplication is on purpose.
+     ───────────────────────────────────────────────────────── */
+  --text-display: 5.25rem;
+  --text-display--line-height: 0.95;
+  --text-display--font-weight: 400;
+  --text-display--letter-spacing: -0.04em;
+
+  --text-display-eyebrow: 1rem;
+  --text-display-eyebrow--line-height: 1;
+  --text-display-eyebrow--font-weight: 400;
+  --text-display-eyebrow--letter-spacing: 0;
+
+  --text-heading-app: 1.5rem;
+  --text-heading-app--line-height: 2rem;
+  --text-heading-app--font-weight: 700;
+  --text-heading-app--letter-spacing: -0.01em;
+
+  --text-heading-page: 1.5rem;
+  --text-heading-page--line-height: 2rem;
+  --text-heading-page--font-weight: 400;
+  --text-heading-page--letter-spacing: -0.01em;
+
+  --text-heading-section: 1.125rem;
+  --text-heading-section--line-height: 1.75rem;
+  --text-heading-section--font-weight: 600;
+  --text-heading-section--letter-spacing: -0.005em;
+
+  --text-heading-item: 0.875rem;
+  --text-heading-item--line-height: 1.25rem;
+  --text-heading-item--font-weight: 500;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+  --text-body--font-weight: 400;
+
+  --text-body-subtle: 0.875rem;
+  --text-body-subtle--line-height: 1.25rem;
+  --text-body-subtle--font-weight: 300;
+
+  --text-bubble: 0.875rem;
+  --text-bubble--line-height: 1.625;
+  --text-bubble--font-weight: 400;
+
+  --text-meta: 0.75rem;
+  --text-meta--line-height: 1rem;
+  --text-meta--font-weight: 400;
+
+  --text-label: 0.6875rem;
+  --text-label--line-height: 0.875rem;
+  --text-label--font-weight: 600;
+  --text-label--letter-spacing: 0.08em;
+
+  --text-pill: 0.6875rem;
+  --text-pill--line-height: 1rem;
+  --text-pill--font-weight: 500;
+
+  --text-chrome: 0.8125rem;
+  --text-chrome--line-height: 1.125rem;
+  --text-chrome--font-weight: 400;
 
   /* shape — pill-first radius system */
   --radius-pill: 999px;
@@ -708,7 +779,52 @@
   }
 }
 
-/* @font-face — add your own here */
+/* @font-face — Cash Sans, served from Block CDN.
+   Matches OG Goose's loading strategy (theme-tokens.ts:215-240). */
+@font-face {
+  font-family: "Cash Sans";
+  src: url(https://cash-f.squarecdn.com/static/fonts/cashsans/woff2/CashSans-Light.woff2)
+    format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cash Sans";
+  src: url(https://cash-f.squarecdn.com/static/fonts/cashsans/woff2/CashSans-Regular.woff2)
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cash Sans";
+  src: url(https://cash-f.squarecdn.com/static/fonts/cashsans/woff2/CashSans-Medium.woff2)
+    format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cash Sans";
+  src: url(https://cash-f.squarecdn.com/static/fonts/cashsans/woff2/CashSans-Semibold.woff2)
+    format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cash Sans";
+  src: url(https://cash-f.squarecdn.com/static/fonts/cashsans/woff2/CashSans-Bold.woff2)
+    format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* App shell lock — outside @layer so nothing can override */
 html,

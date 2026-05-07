@@ -274,7 +274,7 @@ function renderContentBlock(
       return (
         <div
           key={`redacted-${index}`}
-          className="text-xs italic text-muted-foreground"
+          className="text-meta italic text-muted-foreground"
         >
           {options.redactedThinking}
         </div>
@@ -287,7 +287,7 @@ function renderContentBlock(
         <div
           key={`notification-${index}`}
           className={cn(
-            "rounded-md border p-2 text-xs",
+            "rounded-md border p-2 text-meta",
             isError
               ? "border-danger/30 bg-danger/10 text-danger"
               : isCompaction
@@ -341,7 +341,7 @@ export const MessageBubble = memo(function MessageBubble({
   if (role === "system") {
     return (
       <div className="flex justify-center px-4 py-2">
-        <div className="w-full max-w-md text-center text-xs text-muted-foreground">
+        <div className="w-full max-w-md text-center text-meta text-muted-foreground">
           {content.map((c, i) =>
             renderContentBlock(c, i, {
               defaultImageAlt: t("message.defaultImageAlt"),
@@ -404,7 +404,7 @@ export const MessageBubble = memo(function MessageBubble({
         )}
       >
         {showAssistantIdentity ? (
-          <div className="mb-0.5 flex items-center gap-1 text-xs">
+          <div className="mb-0.5 flex items-center gap-1 text-meta">
             {personaAvatarUrl ? (
               <img
                 src={personaAvatarUrl}
@@ -421,9 +421,7 @@ export const MessageBubble = memo(function MessageBubble({
               </span>
             )}
             {assistantDisplayName ? (
-              <span className="font-normal text-foreground">
-                {assistantDisplayName}
-              </span>
+              <span className="text-foreground">{assistantDisplayName}</span>
             ) : null}
           </div>
         ) : null}
@@ -432,7 +430,7 @@ export const MessageBubble = memo(function MessageBubble({
         {/* biome-ignore lint/a11y/noStaticElementInteractions: delegated link handler */}
         <div
           className={cn(
-            "w-full min-w-0 text-sm leading-relaxed",
+            "w-full min-w-0 text-bubble",
             isUser && "rounded-2xl bg-muted p-3",
           )}
           onClick={handleContentClick}
@@ -482,7 +480,7 @@ export const MessageBubble = memo(function MessageBubble({
             );
           })}
           {pathNotice && (
-            <p className="mt-2 text-xs text-destructive" role="status">
+            <p className="mt-2 text-meta text-destructive" role="status">
               {pathNotice}
             </p>
           )}

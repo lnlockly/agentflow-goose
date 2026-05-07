@@ -24,7 +24,7 @@ export function SidebarSearchResults({
 
   if (results.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
+      <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-meta text-muted-foreground">
         <p className="font-medium text-foreground/80">
           {t("sessions:history.emptyNoMatches")}
         </p>
@@ -60,7 +60,7 @@ export function SidebarSearchResults({
             )}
           >
             <div className="min-w-0 flex-1 space-y-1">
-              <p className="truncate text-sm font-medium text-foreground">
+              <p className="truncate text-heading-item text-foreground">
                 {displayTitle}
               </p>
 

@@ -225,7 +225,7 @@ export function CreateProjectDialog({
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="max-w-lg max-h-[85vh] flex flex-col gap-0 p-0">
         <DialogHeader className="shrink-0 px-5 py-4">
-          <DialogTitle className="text-sm">
+          <DialogTitle className="text-heading-item">
             {isEditing ? t("dialog.editTitle") : t("dialog.newTitle")}
           </DialogTitle>
         </DialogHeader>
@@ -237,7 +237,7 @@ export function CreateProjectDialog({
         >
           {/* Name */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium text-muted-foreground">
+            <Label className="text-meta font-medium text-muted-foreground">
               {t("dialog.name")} <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -251,7 +251,7 @@ export function CreateProjectDialog({
           </div>
 
           <div className="space-y-1">
-            <Label className="text-xs font-medium text-muted-foreground">
+            <Label className="text-meta font-medium text-muted-foreground">
               {t("dialog.instructions")}
             </Label>
             <PromptEditor
@@ -283,7 +283,7 @@ export function CreateProjectDialog({
 
           {/* Provider */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-muted-foreground">
+            <Label className="text-meta font-medium text-muted-foreground">
               {t("dialog.provider")}
             </Label>
             <Select
@@ -317,14 +317,14 @@ export function CreateProjectDialog({
             />
             <Label
               htmlFor="use-worktrees"
-              className="text-xs font-medium text-muted-foreground cursor-pointer"
+              className="text-meta font-medium text-muted-foreground cursor-pointer"
             >
               {t("dialog.useWorktrees")}
             </Label>
           </div>
 
           {/* Error */}
-          {error && <p className="text-xs text-destructive">{error}</p>}
+          {error && <p className="text-meta text-destructive">{error}</p>}
         </form>
 
         <DialogFooter className="shrink-0 border-t px-5 py-4">

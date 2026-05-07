@@ -390,8 +390,8 @@ export function McpAppView({
     colorScheme: resolvedTheme,
   } as const;
   const loadingClassName = renderableDocument?.prefersBorder
-    ? "rounded-2xl border border-dashed border-border px-4 py-3 text-muted-foreground text-sm"
-    : "py-1 text-muted-foreground text-sm";
+    ? "rounded-2xl border border-dashed border-border px-4 py-3 text-body-subtle text-muted-foreground"
+    : "py-1 text-body-subtle text-muted-foreground";
 
   useEffect(() => {
     if (!import.meta.env.DEV || !shouldShowFallback) {
@@ -440,11 +440,11 @@ export function McpAppView({
 
       {shouldShowFallback && (
         <div className="mt-3">
-          <div className="mb-2 text-muted-foreground text-xs uppercase tracking-wide">
+          <div className="mb-2 text-label uppercase text-muted-foreground">
             {t("message.mcpApp")}
           </div>
           {(renderError || payload.resource.readError) && (
-            <p className="mb-3 text-muted-foreground text-sm">
+            <p className="mb-3 text-body-subtle text-muted-foreground">
               {renderError ?? payload.resource.readError}
             </p>
           )}

@@ -199,7 +199,7 @@ export function AgentModelPicker({
               className="flex min-h-0 min-w-0 overflow-hidden p-1"
             >
               <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-                <div className="shrink-0 px-2 py-1.5 text-sm font-semibold">
+                <div className="shrink-0 px-2 py-1.5 text-heading-section text-foreground">
                   {t("toolbar.agent")}
                 </div>
                 <ScrollArea className="min-h-0 min-w-0 flex-1">
@@ -240,7 +240,7 @@ export function AgentModelPicker({
           >
             {modelsLoading ? (
               <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-                <div className="shrink-0 px-2 py-1.5 text-sm font-semibold">
+                <div className="shrink-0 px-2 py-1.5 text-heading-section text-foreground">
                   {t("toolbar.model")}
                 </div>
                 {displayModelLabel ? (
@@ -253,7 +253,7 @@ export function AgentModelPicker({
                     </PickerItem>
                   </div>
                 ) : (
-                  <div className="flex min-h-0 flex-1 items-center gap-2 px-2 py-2 text-sm text-muted-foreground">
+                  <div className="flex min-h-0 flex-1 items-center gap-2 px-2 py-2 text-body-subtle text-muted-foreground">
                     <Spinner className="size-4" />
                     <span>{t("toolbar.loadingModels")}</span>
                   </div>
@@ -283,11 +283,11 @@ export function AgentModelPicker({
               )
             ) : (
               <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-                <div className="shrink-0 px-2 py-1.5 text-sm font-semibold">
+                <div className="shrink-0 px-2 py-1.5 text-heading-section text-foreground">
                   {t("toolbar.model")}
                 </div>
                 <div className="px-2 py-2">
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-body-subtle text-muted-foreground">
                     {modelStatusMessage ??
                       displayModelLabel ??
                       t("toolbar.noModelsAvailable")}

@@ -175,7 +175,7 @@ export const ToolHeader = ({
   );
 
   const titleClasses = cn(
-    "min-w-0 truncate text-left text-sm font-medium",
+    "min-w-0 truncate text-left text-heading-item",
     isFitLayout ? "flex-none max-w-full" : "flex-1",
   );
 
@@ -183,7 +183,7 @@ export const ToolHeader = ({
     <>
       {showStatusBadge && getStatusBadge(state)}
       {elapsedSeconds != null && (
-        <span className="shrink-0 tabular-nums text-xs text-muted-foreground">
+        <span className="shrink-0 tabular-nums text-meta text-muted-foreground">
           {elapsedSeconds}s
         </span>
       )}
@@ -257,9 +257,7 @@ export const ToolSection = ({
   ...props
 }: ToolSectionProps) => (
   <div className={cn("space-y-2", className)} {...props}>
-    <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-      {label}
-    </h4>
+    <h4 className="text-label uppercase text-muted-foreground">{label}</h4>
     {children}
   </div>
 );
@@ -382,7 +380,7 @@ export const ToolInput = ({
     typeof summary === "function"
       ? summary({ isOpen: isJsonOpen })
       : (summary ?? (
-          <span className="text-xs text-muted-foreground">{label}</span>
+          <span className="text-meta text-muted-foreground">{label}</span>
         ));
 
   const inputBody = hasStructuredInput ? (

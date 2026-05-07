@@ -83,8 +83,8 @@ export function PageHeader({
   const actionsBelow = actionsPlacement === "below";
   const titleVariantClassName =
     variant === "detail"
-      ? "font-display text-2xl font-normal tracking-tight text-foreground"
-      : "text-xl tracking-tight";
+      ? "text-heading-app text-foreground"
+      : "text-heading-page";
 
   return (
     <div
@@ -104,7 +104,7 @@ export function PageHeader({
         {description ? (
           <p
             className={cn(
-              "mt-1 text-sm font-light text-muted-foreground",
+              "mt-1 text-body-subtle text-muted-foreground",
               descriptionClassName,
             )}
           >

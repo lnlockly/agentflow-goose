@@ -195,12 +195,12 @@ export function WorkspaceCreateDialog({
     <Dialog open={mode !== null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md gap-0 p-0">
         <DialogHeader className="px-5 py-4">
-          <DialogTitle className="text-sm">
+          <DialogTitle className="text-heading-item">
             {mode === "branch"
               ? t("contextPanel.createDialog.branchTitle")
               : t("contextPanel.createDialog.worktreeTitle")}
           </DialogTitle>
-          <DialogDescription className="text-xs">
+          <DialogDescription className="text-meta">
             {mode === "branch"
               ? t("contextPanel.createDialog.branchDescription")
               : t("contextPanel.createDialog.worktreeDescription")}
@@ -217,7 +217,7 @@ export function WorkspaceCreateDialog({
               <div className="space-y-1.5">
                 <Label
                   htmlFor="workspace-branch-name"
-                  className="text-xs font-medium text-muted-foreground"
+                  className="text-meta font-medium text-muted-foreground"
                 >
                   {t("contextPanel.createDialog.branchName")}
                 </Label>
@@ -235,7 +235,7 @@ export function WorkspaceCreateDialog({
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">
+                <Label className="text-meta font-medium text-muted-foreground">
                   {t("contextPanel.createDialog.baseBranch")}
                 </Label>
                 <Select value={baseBranch} onValueChange={setBaseBranch}>
@@ -261,7 +261,7 @@ export function WorkspaceCreateDialog({
               <div className="space-y-1.5">
                 <Label
                   htmlFor="workspace-worktree-name"
-                  className="text-xs font-medium text-muted-foreground"
+                  className="text-meta font-medium text-muted-foreground"
                 >
                   {t("contextPanel.createDialog.worktreeName")}
                 </Label>
@@ -305,7 +305,7 @@ export function WorkspaceCreateDialog({
                   />
                   <Label
                     htmlFor="workspace-create-new-branch"
-                    className="cursor-pointer text-xs font-medium text-muted-foreground"
+                    className="cursor-pointer text-meta font-medium text-muted-foreground"
                   >
                     {t("contextPanel.createDialog.createNewBranch")}
                   </Label>
@@ -317,7 +317,7 @@ export function WorkspaceCreateDialog({
                   <div className="space-y-1.5">
                     <Label
                       htmlFor="workspace-worktree-branch-name"
-                      className="text-xs font-medium text-muted-foreground"
+                      className="text-meta font-medium text-muted-foreground"
                     >
                       {t("contextPanel.createDialog.branchName")}
                     </Label>
@@ -336,7 +336,7 @@ export function WorkspaceCreateDialog({
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium text-muted-foreground">
+                    <Label className="text-meta font-medium text-muted-foreground">
                       {t("contextPanel.createDialog.baseBranch")}
                     </Label>
                     <Select value={baseBranch} onValueChange={setBaseBranch}>
@@ -359,7 +359,7 @@ export function WorkspaceCreateDialog({
                 </>
               ) : (
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-muted-foreground">
+                  <Label className="text-meta font-medium text-muted-foreground">
                     {t("contextPanel.createDialog.branchToOpen")}
                   </Label>
                   <Select
@@ -396,7 +396,7 @@ export function WorkspaceCreateDialog({
             </>
           ) : null}
 
-          {error ? <p className="text-xs text-destructive">{error}</p> : null}
+          {error ? <p className="text-meta text-destructive">{error}</p> : null}
         </form>
 
         <DialogFooter className="border-t px-5 py-4">

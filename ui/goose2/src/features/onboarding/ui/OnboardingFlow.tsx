@@ -21,7 +21,7 @@ export function OnboardingFlow({ readiness, onComplete }: OnboardingFlowProps) {
         className="flex h-11 shrink-0 items-center justify-center"
         data-tauri-drag-region
       >
-        <div className="text-xs font-medium text-foreground">
+        <div className="text-meta font-medium text-foreground">
           {t("onboarding:windowTitle")}
         </div>
       </div>

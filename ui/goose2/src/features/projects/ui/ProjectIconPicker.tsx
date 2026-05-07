@@ -30,7 +30,7 @@ export function ProjectIconPicker({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium text-muted-foreground">
+        <span className="text-meta font-medium text-muted-foreground">
           {t("dialog.icon")}
         </span>
         {iconScanPending && (
@@ -89,7 +89,7 @@ export function ProjectIconPicker({
             type="button"
             onClick={onChooseCustomIcon}
             className={cn(
-              "col-span-2 flex h-9 min-w-[88px] items-center justify-center gap-1.5 rounded-md border bg-background px-3 text-xs text-foreground transition-colors hover:bg-muted",
+              "col-span-2 flex h-9 min-w-[88px] items-center justify-center gap-1.5 rounded-md border bg-background px-3 text-meta text-foreground transition-colors hover:bg-muted",
               selectedCustomIcon ? "border-foreground" : "border-border-soft",
             )}
             title={
@@ -108,7 +108,7 @@ export function ProjectIconPicker({
           </button>
         </div>
       </div>
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && <p className="text-meta text-destructive">{error}</p>}
     </div>
   );
 }

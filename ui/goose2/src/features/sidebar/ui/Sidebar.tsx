@@ -320,7 +320,7 @@ export function Sidebar({
                   type="button"
                   onClick={onCollapse}
                   title={t("actions.expand")}
-                  className="flex w-full items-center gap-2.5 rounded-md px-3 py-1.5 text-sm text-foreground transition-colors duration-200 hover:text-foreground"
+                  className="flex w-full items-center gap-2.5 rounded-md px-3 py-1.5 text-chrome text-foreground transition-colors duration-200 hover:text-foreground"
                   aria-label={t("actions.expand")}
                 >
                   <IconLayoutSidebar className="size-4 flex-shrink-0" />
@@ -333,7 +333,7 @@ export function Sidebar({
                   "mb-3 flex items-center w-full rounded-md transition-all duration-300 ease-out",
                   collapsed
                     ? "justify-center p-3 text-foreground"
-                    : "gap-2 border border-border px-2.5 py-1.5 text-xs text-foreground hover:text-foreground hover:bg-transparent",
+                    : "gap-2 border border-border px-2.5 py-1.5 text-chrome text-foreground hover:text-foreground hover:bg-transparent",
                 )}
               >
                 <IconSearch className="size-3.5 flex-shrink-0 text-placeholder" />
@@ -352,7 +352,7 @@ export function Sidebar({
                     }}
                     placeholder={t("search.placeholder")}
                     className={cn(
-                      "focus-override appearance-none bg-transparent border-none text-xs flex-1 min-w-0 placeholder:text-placeholder outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
+                      "focus-override appearance-none bg-transparent border-none text-meta flex-1 min-w-0 placeholder:text-placeholder outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
                       labelTransition,
                       labelVisible
                         ? "opacity-100 w-auto"
@@ -401,14 +401,14 @@ export function Sidebar({
               (sidebarSearch.submittedQuery ? (
                 <div className="relative z-10 space-y-2">
                   {sidebarSearch.error && (
-                    <p className="px-1 text-xs text-danger">
+                    <p className="px-1 text-meta text-danger">
                       {t("search.error")}
                     </p>
                   )}
 
                   {sidebarSearch.isSearching &&
                     sidebarSearch.results.length === 0 && (
-                      <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
+                      <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-meta text-muted-foreground">
                         {t("search.searching")}
                       </div>
                     )}
@@ -483,7 +483,7 @@ export function Sidebar({
               {!collapsed && (
                 <span
                   className={cn(
-                    "whitespace-nowrap text-sm",
+                    "whitespace-nowrap text-chrome",
                     labelTransition,
                     labelVisible
                       ? "opacity-100 w-auto"

@@ -122,7 +122,7 @@ export function SettingsModal({
                 : "opacity-0 -translate-x-2",
             )}
           >
-            <h2 className="text-sm font-semibold">{t("title")}</h2>
+            <h2 className="text-heading-section">{t("title")}</h2>
           </div>
           <nav className="min-h-0 flex-1 overflow-y-auto px-2 pb-3 max-[640px]:overflow-x-auto max-[640px]:overflow-y-hidden max-[640px]:pb-2">
             <div className="flex flex-col gap-1 max-[640px]:min-w-max max-[640px]:flex-row">

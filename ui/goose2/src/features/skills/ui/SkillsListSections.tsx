@@ -64,11 +64,11 @@ export function SkillsListSections({
                       aria-label={t("view.openDetails", { name: skill.name })}
                     />
                     <div className="pointer-events-none relative z-10 min-w-0 flex-1">
-                      <p className="text-sm font-normal text-foreground">
+                      <p className="text-heading-item text-foreground">
                         {skill.name}
                       </p>
                       {skill.description ? (
-                        <p className="mt-1 line-clamp-2 text-xs font-light text-muted-foreground">
+                        <p className="mt-1 text-body-subtle text-muted-foreground line-clamp-2">
                           {skill.description}
                         </p>
                       ) : null}

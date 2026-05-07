@@ -348,7 +348,7 @@ export function ProvidersSettings() {
           className="mb-4 rounded-md border border-danger/30 bg-danger/10 p-3"
         >
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs text-danger">{catalogError}</p>
+            <p className="text-meta text-danger">{catalogError}</p>
             <Button
               type="button"
               variant="outline"
@@ -364,7 +364,7 @@ export function ProvidersSettings() {
       {catalogLoading && (
         <div
           role="status"
-          className="mb-4 flex items-center gap-2 text-xs text-muted-foreground"
+          className="mb-4 flex items-center gap-2 text-meta text-muted-foreground"
         >
           <Spinner className="size-3.5" />
           {t("providers.catalog.loading")}
@@ -373,10 +373,10 @@ export function ProvidersSettings() {
 
       <section>
         <div className="mb-3">
-          <h4 className="text-sm font-semibold">
+          <h4 className="text-heading-section text-foreground">
             {t("providers.agents.title")}
           </h4>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-0.5 text-meta text-muted-foreground">
             {t("providers.agents.description")}
           </p>
         </div>
@@ -393,17 +393,17 @@ export function ProvidersSettings() {
       <section>
         <div className="mb-3">
           <div className="flex items-center gap-2">
-            <h4 className="text-sm font-semibold">
+            <h4 className="text-heading-section text-foreground">
               {t("providers.models.title")}
             </h4>
             {loading ? (
-              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5 text-meta text-muted-foreground">
                 <Spinner className="size-3 text-brand" />
                 {t("providers.models.checkingStatus")}
               </span>
             ) : null}
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-0.5 text-meta text-muted-foreground">
             {t("providers.models.description")}
           </p>
         </div>
@@ -411,7 +411,7 @@ export function ProvidersSettings() {
         {customProviderError ? (
           <p
             role="alert"
-            className="mb-3 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger"
+            className="mb-3 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-meta text-danger"
           >
             {customProviderError}
           </p>
@@ -419,7 +419,7 @@ export function ProvidersSettings() {
         {customProviderDeleteError ? (
           <p
             role="alert"
-            className="mb-3 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger"
+            className="mb-3 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-meta text-danger"
           >
             {customProviderDeleteError}
           </p>

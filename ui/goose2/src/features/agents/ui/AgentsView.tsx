@@ -229,10 +229,8 @@ export function AgentsView() {
           {/* Header */}
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h1 className="text-lg font-semibold font-display tracking-tight">
-                {t("view.title")}
-              </h1>
-              <p className="text-xs text-muted-foreground">
+              <h1 className="text-heading-page">{t("view.title")}</h1>
+              <p className="text-body-subtle text-muted-foreground">
                 {t("view.description")}
               </p>
             </div>

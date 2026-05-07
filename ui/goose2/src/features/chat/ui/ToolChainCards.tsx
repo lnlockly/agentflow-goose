@@ -329,7 +329,7 @@ export function ToolChainCards({ toolItems }: { toolItems: ToolChainItem[] }) {
           setChainExpanded((prev) => !prev);
         }}
         aria-expanded={chainExpanded}
-        className="flex w-full max-w-full items-center gap-2.5 pb-1 text-left text-sm font-medium text-foreground"
+        className="flex w-full max-w-full items-center gap-2.5 pb-1 text-left text-heading-item text-foreground"
       >
         <span
           aria-hidden="true"
@@ -377,7 +377,7 @@ export function ToolChainCards({ toolItems }: { toolItems: ToolChainItem[] }) {
                 <button
                   type="button"
                   onClick={() => setShowInternalSteps((prev) => !prev)}
-                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                  className="inline-flex items-center gap-1 text-meta text-muted-foreground hover:text-foreground"
                 >
                   <ChevronRight
                     aria-hidden="true"

@@ -96,7 +96,7 @@ export function PersonaPicker({
             <Sparkles className="h-3.5 w-3.5" />
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="text-sm font-medium">
+            <span className="text-heading-item">
               {t("common:labels.goose")}
             </span>
             <span className="text-[11px] leading-snug text-muted-foreground">
@@ -144,7 +144,7 @@ export function PersonaPicker({
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={onCreatePersona}>
               <Plus className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-sm">{t("persona.create")}</span>
+              <span className="text-heading-item">{t("persona.create")}</span>
             </DropdownMenuItem>
           </>
         )}
@@ -175,7 +175,7 @@ function PersonaMenuItem({
     >
       <PersonaAvatar persona={persona} size="md" />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-sm font-medium">{persona.displayName}</span>
+        <span className="text-heading-item">{persona.displayName}</span>
         {summary && (
           <p className="line-clamp-2 break-words text-[11px] leading-snug text-muted-foreground">
             {summary}

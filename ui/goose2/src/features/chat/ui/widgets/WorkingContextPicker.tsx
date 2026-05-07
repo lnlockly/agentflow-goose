@@ -204,7 +204,7 @@ export function WorkingContextPicker({
             type="button"
             className={cn(
               "flex w-full items-center gap-2 rounded-md border border-border px-2.5 py-2",
-              "text-xs text-foreground transition-colors",
+              "text-meta text-foreground transition-colors",
               "hover:bg-background-alt focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
             )}
             aria-label={t("contextPanel.picker.selectContext")}
@@ -231,7 +231,7 @@ export function WorkingContextPicker({
         >
           {hasWorktrees ? (
             <div>
-              <p className="px-2 pb-1.5 pt-1 text-xxs font-medium uppercase tracking-wider text-muted-foreground">
+              <p className="px-2 pb-1.5 pt-1 text-label uppercase text-muted-foreground">
                 {t("contextPanel.picker.worktrees")}
               </p>
               {worktrees.map((wt) => (
@@ -239,7 +239,7 @@ export function WorkingContextPicker({
                   key={wt.path}
                   type="button"
                   className={cn(
-                    "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors",
+                    "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-meta transition-colors",
                     "hover:bg-muted focus-visible:outline-none focus-visible:bg-muted",
                     isWorktreeSelected(wt.path) && "bg-muted",
                   )}
@@ -265,7 +265,7 @@ export function WorkingContextPicker({
             <div
               className={hasWorktrees ? "mt-1 border-t border-border pt-1" : ""}
             >
-              <p className="px-2 pb-1.5 pt-1 text-xxs font-medium uppercase tracking-wider text-muted-foreground">
+              <p className="px-2 pb-1.5 pt-1 text-label uppercase text-muted-foreground">
                 {t("contextPanel.picker.allBranches")}
               </p>
               {localBranches.map((branch) => {
@@ -283,7 +283,7 @@ export function WorkingContextPicker({
                     type="button"
                     disabled={switching || isCurrentBranch}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors",
+                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-meta transition-colors",
                       "hover:bg-muted focus-visible:outline-none focus-visible:bg-muted",
                       "disabled:opacity-50",
                     )}

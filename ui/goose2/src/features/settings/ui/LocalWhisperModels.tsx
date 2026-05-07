@@ -190,7 +190,7 @@ export function LocalWhisperModels({
   if (loading) {
     return (
       <div className="rounded-lg border border-border px-3 py-3">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-meta text-muted-foreground">
           {t("common:labels.loading")}
         </p>
       </div>
@@ -200,7 +200,7 @@ export function LocalWhisperModels({
   if (models.length === 0) {
     return (
       <div className="rounded-lg border border-border px-3 py-3">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-meta text-muted-foreground">
           {t("general.voiceInput.noLocalModels")}
         </p>
       </div>
@@ -210,10 +210,10 @@ export function LocalWhisperModels({
   return (
     <div className="space-y-2 rounded-lg border border-border px-3 py-3">
       <div>
-        <p className="text-xs font-medium text-foreground">
+        <p className="text-meta font-medium text-foreground">
           {t("general.voiceInput.localModelLabel")}
         </p>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-1 text-meta text-muted-foreground">
           {t("general.voiceInput.localModelDescription")}
         </p>
       </div>
@@ -233,19 +233,19 @@ export function LocalWhisperModels({
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="truncate text-xs font-medium text-foreground">
+                  <p className="truncate text-meta font-medium text-foreground">
                     {model.id}
                   </p>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-meta text-muted-foreground">
                     {model.sizeMb} MB
                   </span>
                   {isSelected ? (
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-pill text-primary">
                       {t("general.voiceInput.selectedModel")}
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-1 text-meta text-muted-foreground">
                   {model.description}
                 </p>
                 {isDownloading && progress ? (
@@ -266,7 +266,7 @@ export function LocalWhisperModels({
                   </div>
                 ) : null}
                 {progress?.status === "failed" && progress.error ? (
-                  <p className="mt-1 text-xs text-destructive">
+                  <p className="mt-1 text-meta text-destructive">
                     {progress.error}
                   </p>
                 ) : null}
@@ -319,7 +319,7 @@ export function LocalWhisperModels({
         })}
       </ul>
 
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {error ? <p className="text-meta text-destructive">{error}</p> : null}
     </div>
   );
 }

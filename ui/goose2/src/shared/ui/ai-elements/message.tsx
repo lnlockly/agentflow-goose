@@ -384,7 +384,86 @@ const MarkdownLink = memo(
 );
 MarkdownLink.displayName = "MarkdownLink";
 
-const streamdownComponents = { a: MarkdownLink };
+const InlineCode = ({ className, ...props }: ComponentProps<"code">) => (
+  <code
+    className={cn(
+      "rounded-md bg-muted px-1.5 py-0.5 font-mono text-[0.875em] text-foreground",
+      className,
+    )}
+    {...props}
+  />
+);
+
+const MarkdownH1 = ({ className, ...props }: ComponentProps<"h1">) => (
+  <h1
+    className={cn(
+      "mb-3 mt-4 text-heading-section text-foreground first:mt-0",
+      className,
+    )}
+    {...props}
+  />
+);
+
+const MarkdownH2 = ({ className, ...props }: ComponentProps<"h2">) => (
+  <h2
+    className={cn(
+      "mb-2 mt-4 text-heading-section text-foreground first:mt-0",
+      className,
+    )}
+    {...props}
+  />
+);
+
+const MarkdownH3 = ({ className, ...props }: ComponentProps<"h3">) => (
+  <h3
+    className={cn(
+      "mb-2 mt-3 text-heading-item text-foreground first:mt-0",
+      className,
+    )}
+    {...props}
+  />
+);
+
+const MarkdownH4 = ({ className, ...props }: ComponentProps<"h4">) => (
+  <h4
+    className={cn(
+      "mb-1 mt-3 text-heading-item text-foreground first:mt-0",
+      className,
+    )}
+    {...props}
+  />
+);
+
+const MarkdownH5 = ({ className, ...props }: ComponentProps<"h5">) => (
+  <h5
+    className={cn(
+      "mb-1 mt-3 text-heading-item text-foreground first:mt-0",
+      className,
+    )}
+    {...props}
+  />
+);
+
+const MarkdownH6 = ({ className, ...props }: ComponentProps<"h6">) => (
+  <h6
+    className={cn(
+      "mb-1 mt-3 text-heading-item text-foreground first:mt-0",
+      className,
+    )}
+    {...props}
+  />
+);
+
+const streamdownComponents = {
+  a: MarkdownLink,
+  inlineCode: InlineCode,
+  h1: MarkdownH1,
+  h2: MarkdownH2,
+  h3: MarkdownH3,
+  h4: MarkdownH4,
+  h5: MarkdownH5,
+  h6: MarkdownH6,
+};
 
 const linkSafetyConfig: ComponentProps<typeof Streamdown>["linkSafety"] = {
   enabled: false,

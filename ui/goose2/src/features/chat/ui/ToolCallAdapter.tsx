@@ -211,7 +211,7 @@ function InputSummary({
         if (row.renderAs === "bash") {
           return (
             <div key={key} className="space-y-0.5">
-              <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">
+              <dt className="text-label uppercase text-muted-foreground">
                 {label}
               </dt>
               <dd>
@@ -230,7 +230,7 @@ function InputSummary({
         }
         return (
           <div key={key} className="flex items-baseline gap-2">
-            <dt className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            <dt className="shrink-0 text-label uppercase text-muted-foreground">
               {label}
             </dt>
             <dd

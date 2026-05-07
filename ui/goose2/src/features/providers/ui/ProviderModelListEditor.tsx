@@ -61,7 +61,7 @@ export function ProviderModelListEditor({
           placeholder={t("providers.custom.fields.modelsPlaceholder")}
           disabled={disabled}
           spellCheck={false}
-          className="h-8 text-xs"
+          className="h-8 text-meta"
         />
         <Button
           type="button"
@@ -80,7 +80,7 @@ export function ProviderModelListEditor({
           {models.map((model) => (
             <span
               key={model}
-              className="inline-flex h-7 max-w-full items-center gap-1 rounded-full border border-border bg-muted px-2 text-xs"
+              className="inline-flex h-7 max-w-full items-center gap-1 rounded-full border border-border bg-muted px-2 text-meta"
             >
               <span className="truncate">{model}</span>
               <button

@@ -96,7 +96,7 @@ export function ExtensionsSettings() {
     return (
       <section className="space-y-3">
         {showTitle ? (
-          <h4 className="text-sm font-normal text-foreground">{title}</h4>
+          <h4 className="text-heading-section text-foreground">{title}</h4>
         ) : null}
         <div className="grid gap-x-12 sm:grid-cols-2">
           {sectionExtensions.map((ext) => (
@@ -171,9 +171,11 @@ export function ExtensionsSettings() {
           ))}
         </div>
       ) : extensions.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("extensions.empty")}</p>
+        <p className="text-body-subtle text-muted-foreground">
+          {t("extensions.empty")}
+        </p>
       ) : visibleExtensions.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-body-subtle text-muted-foreground">
           {t("extensions.noResults")}
         </p>
       ) : (

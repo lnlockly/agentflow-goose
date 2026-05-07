@@ -97,7 +97,7 @@ export function ArtifactsWidget() {
               onClick={() => void openResolvedPath(artifact.resolvedPath)}
             >
               <Icon className="size-3.5 shrink-0 text-foreground-subtle" />
-              <span className="truncate text-xs text-foreground">
+              <span className="truncate text-meta text-foreground">
                 {artifact.filename}
               </span>
             </button>

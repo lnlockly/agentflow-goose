@@ -95,7 +95,7 @@ function AccordionSectionTrigger({
     >
       <div className="flex flex-1 items-baseline justify-between gap-3">
         <div className="flex items-center gap-2">
-          <p className="text-base font-normal text-foreground">{title}</p>
+          <p className="text-heading-section text-foreground">{title}</p>
           <ChevronDownIcon
             className={cn(
               "size-4 shrink-0 text-muted-foreground opacity-0 transition-[opacity,transform] duration-200 group-hover/accordion-trigger:opacity-100 group-focus-visible/accordion-trigger:opacity-100 group-data-[state=open]/accordion-trigger:rotate-180",
@@ -104,7 +104,7 @@ function AccordionSectionTrigger({
           />
         </div>
         {meta ? (
-          <div className="text-xs font-light text-muted-foreground">{meta}</div>
+          <div className="text-meta text-muted-foreground">{meta}</div>
         ) : null}
       </div>
     </AccordionTrigger>

@@ -322,7 +322,7 @@ export function ChatInputToolbar({
                 sideOffset={8}
                 className="w-60 rounded-2xl p-1 text-left"
               >
-                <div className="px-2 py-1.5 text-sm font-semibold text-foreground">
+                <div className="px-2 py-1.5 text-heading-section text-foreground">
                   {t("toolbar.contextWindow")}
                 </div>
                 <div className="space-y-2 px-2 pb-1.5">
@@ -330,7 +330,7 @@ export function ChatInputToolbar({
                     className="h-1.5 bg-muted"
                     value={contextProgress * 100}
                   />
-                  <div className="flex items-center justify-between gap-3 text-xs text-foreground">
+                  <div className="flex items-center justify-between gap-3 text-meta text-foreground">
                     <div className="truncate">
                       {t("toolbar.contextTokensBreakdown", {
                         tokens: formatCompactTokenCount(contextTokens),

@@ -398,7 +398,7 @@ export function AgentProviderCard({ provider }: AgentProviderCardProps) {
         <div className="flex items-center gap-2">
           <Spinner className="size-3.5 text-brand" />
           <div className="min-w-0 flex-1">
-            <span className="text-xs font-medium">{phaseLabel}</span>
+            <span className="text-meta font-medium">{phaseLabel}</span>
             {stepInfo && (
               <span className="ml-2 text-xxs text-muted-foreground">
                 {stepInfo}
@@ -429,10 +429,10 @@ export function AgentProviderCard({ provider }: AgentProviderCardProps) {
               {icon}
             </div>
           ) : null}
-          <span className={cn("block text-sm", icon && "mt-2")}>
+          <span className={cn("block text-heading-item", icon && "mt-2")}>
             {provider.displayName}
           </span>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-meta text-muted-foreground">
             {provider.description}
           </p>
         </div>
@@ -454,7 +454,7 @@ export function AgentProviderCard({ provider }: AgentProviderCardProps) {
                         : "bg-muted-foreground/40",
                   )}
                 />
-                <span className="text-xs text-muted-foreground">
+                <span className="text-meta text-muted-foreground">
                   {statusText}
                 </span>
               </>
@@ -468,7 +468,7 @@ export function AgentProviderCard({ provider }: AgentProviderCardProps) {
 
       {setupError && !isActive && (
         <div className="mt-3 space-y-2 border-t pt-3">
-          <p className="text-xs text-danger">{setupError}</p>
+          <p className="text-meta text-danger">{setupError}</p>
           {renderSetupOutput()}
         </div>
       )}

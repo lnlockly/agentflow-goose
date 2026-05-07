@@ -194,7 +194,7 @@ export function PersonaEditor({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-lg max-h-[85vh] flex flex-col gap-0 p-0">
         <DialogHeader className="shrink-0 px-5 py-4">
-          <DialogTitle className="text-sm">
+          <DialogTitle className="text-heading-item">
             {detailsMode
               ? persona?.displayName
               : isEditing
@@ -202,7 +202,7 @@ export function PersonaEditor({
                 : t("editor.newTitle")}
           </DialogTitle>
           {readOnlyDescription ? (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-meta text-muted-foreground">
               {readOnlyDescription}
             </p>
           ) : null}
@@ -245,7 +245,7 @@ export function PersonaEditor({
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs font-medium text-muted-foreground">
+              <Label className="text-meta font-medium text-muted-foreground">
                 {t("editor.displayName")}{" "}
                 <span className="text-destructive">*</span>
               </Label>
@@ -261,7 +261,7 @@ export function PersonaEditor({
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium text-muted-foreground">
+                <Label className="text-meta font-medium text-muted-foreground">
                   {t("editor.systemPrompt")}{" "}
                   <span className="text-destructive">*</span>
                 </Label>
@@ -286,7 +286,7 @@ export function PersonaEditor({
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs font-medium text-muted-foreground">
+              <Label className="text-meta font-medium text-muted-foreground">
                 {t("editor.provider")}
               </Label>
               <Select
@@ -328,7 +328,7 @@ export function PersonaEditor({
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs font-medium text-muted-foreground">
+              <Label className="text-meta font-medium text-muted-foreground">
                 {t("editor.model")}
               </Label>
               <Select

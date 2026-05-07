@@ -18,7 +18,7 @@ export function PickerItem({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "flex min-w-0 w-full items-center gap-2 overflow-hidden rounded-sm px-2 py-1.5 text-left text-sm transition-colors",
+        "flex min-w-0 w-full items-center gap-2 overflow-hidden rounded-sm px-2 py-1.5 text-left text-heading-item transition-colors",
         "hover:bg-muted focus-visible:bg-muted focus:outline-none",
         "disabled:pointer-events-none disabled:opacity-50",
         selected && "bg-muted/60",

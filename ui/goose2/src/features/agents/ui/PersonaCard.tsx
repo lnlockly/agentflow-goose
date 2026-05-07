@@ -127,30 +127,28 @@ export function PersonaCard({
       </Avatar>
 
       {/* Name */}
-      <h3 className="text-sm font-medium text-center leading-tight">
-        {persona.displayName}
-      </h3>
+      <h3 className="text-heading-item text-center">{persona.displayName}</h3>
 
       {/* Built-in badge */}
       {personaSource === "builtin" && (
-        <Badge variant="secondary" className="text-[10px]">
+        <Badge variant="secondary" className="text-pill">
           {t("common:labels.builtIn")}
         </Badge>
       )}
       {personaSource === "file" && (
-        <Badge variant="secondary" className="text-[10px]">
+        <Badge variant="secondary" className="text-pill">
           {t("card.fileBacked")}
         </Badge>
       )}
 
       {/* System prompt preview */}
-      <p className="text-xs text-muted-foreground text-center line-clamp-2 w-full">
+      <p className="text-body-subtle text-muted-foreground text-center line-clamp-2 w-full">
         {persona.systemPrompt}
       </p>
 
       {/* Provider/model badge */}
       {providerModelLabel && (
-        <Badge variant="secondary" className="max-w-full min-w-0 text-[10px]">
+        <Badge variant="secondary" className="max-w-full min-w-0 text-pill">
           <span className="block max-w-full truncate">
             {providerModelLabel}
           </span>

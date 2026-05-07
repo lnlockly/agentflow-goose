@@ -360,7 +360,7 @@ export function ModelProviderRow({
         >
           {!isConnected && nativeConnectDescription ? (
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-meta text-muted-foreground">
                 {nativeConnectDescription}
               </p>
               <Button
@@ -380,7 +380,7 @@ export function ModelProviderRow({
             renderSetupMessage(setupMessage)
           )}
           {authenticating ? (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 text-meta text-muted-foreground">
               <Spinner className="size-3.5 text-brand" />
               <span>{t("providers.waitingForSignIn")}</span>
             </div>
@@ -397,7 +397,7 @@ export function ModelProviderRow({
             </div>
           ) : null}
           {setupError ? (
-            <p className="text-xs text-danger">{setupError}</p>
+            <p className="text-meta text-danger">{setupError}</p>
           ) : null}
         </div>
       );
@@ -484,7 +484,9 @@ export function ModelProviderRow({
           </div>
         )}
 
-        <span className="min-w-0 flex-1 text-sm">{provider.displayName}</span>
+        <span className="min-w-0 flex-1 text-heading-item">
+          {provider.displayName}
+        </span>
 
         {isConnected ? (
           <IconCheck className="size-4 flex-shrink-0 text-success" />

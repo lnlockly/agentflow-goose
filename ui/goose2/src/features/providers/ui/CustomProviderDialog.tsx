@@ -199,10 +199,10 @@ export function CustomProviderDialog({
         >
           <IconSettings className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
           <span className="min-w-0">
-            <span className="block text-sm font-medium">
+            <span className="block text-heading-item">
               {t("providers.custom.templates.manual")}
             </span>
-            <span className="mt-1 block text-xs text-muted-foreground">
+            <span className="mt-1 block text-meta text-muted-foreground">
               {t("providers.custom.templates.manualDescription")}
             </span>
           </span>
@@ -215,10 +215,10 @@ export function CustomProviderDialog({
         >
           <IconLayoutGrid className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
           <span className="min-w-0">
-            <span className="block text-sm font-medium">
+            <span className="block text-heading-item">
               {t("providers.custom.templates.useTemplate")}
             </span>
-            <span className="mt-1 block text-xs text-muted-foreground">
+            <span className="mt-1 block text-meta text-muted-foreground">
               {t("providers.custom.templates.useTemplateDescription")}
             </span>
           </span>

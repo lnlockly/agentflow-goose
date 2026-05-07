@@ -150,15 +150,15 @@ export function SessionCard({
               cancelRename();
             }
           }}
-          className="relative z-10 text-sm font-medium"
+          className="text-heading-item relative z-10"
         />
       ) : (
-        <p className="text-sm font-medium line-clamp-2 break-words pr-6">
+        <p className="text-heading-item line-clamp-2 break-words pr-6">
           {displayTitle}
         </p>
       )}
 
-      <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+      <div className="flex flex-col gap-1 text-meta text-muted-foreground">
         <div className="flex items-center gap-1.5">
           <Calendar className="size-3 shrink-0" />
           <span>{formatRelativeTimeToNow(updatedAt)}</span>
@@ -192,7 +192,7 @@ export function SessionCard({
       </div>
 
       {(snippet || matchCount) && (
-        <div className="relative z-10 mt-1 space-y-1 text-xs">
+        <div className="relative z-10 mt-1 space-y-1 text-meta">
           {snippet && (
             <p className="line-clamp-3 text-muted-foreground">{snippet}</p>
           )}

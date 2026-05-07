@@ -12,8 +12,8 @@ interface AboutAppInfo {
 function AboutInfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4 py-2">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="min-w-0 truncate text-right text-sm font-medium">
+      <span className="text-body-subtle text-muted-foreground">{label}</span>
+      <span className="min-w-0 truncate text-right text-heading-item">
         {value}
       </span>
     </div>

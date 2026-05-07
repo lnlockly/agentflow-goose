@@ -59,11 +59,11 @@ export function ProjectsSettings() {
     <>
       <SettingsPage title={t("projects.title")}>
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold">
+          <h4 className="text-heading-section text-foreground">
             {t("projects.sectionTitle")}
           </h4>
           {!loadingArchived && archivedProjects.length === 0 ? (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-meta text-muted-foreground">
               {t("projects.empty")}
             </p>
           ) : null}
@@ -78,7 +78,9 @@ export function ProjectsSettings() {
                   className="size-4 shrink-0 text-foreground"
                   imageClassName="size-4 shrink-0 rounded-[4px]"
                 />
-                <span className="truncate text-sm">{project.name}</span>
+                <span className="truncate text-heading-item">
+                  {project.name}
+                </span>
               </div>
               <div className="flex flex-shrink-0 items-center gap-1.5">
                 <Button

@@ -47,11 +47,11 @@ function ChangedFileRow({
         )}
       >
         {dir && (
-          <span className="shrink truncate text-xs text-muted-foreground">
+          <span className="shrink truncate text-meta text-muted-foreground">
             {dir}
           </span>
         )}
-        <span className="shrink-0 whitespace-nowrap text-xs font-medium text-foreground">
+        <span className="shrink-0 whitespace-nowrap text-meta font-medium text-foreground">
           {name}
         </span>
       </div>
