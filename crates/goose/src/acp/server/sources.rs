@@ -22,11 +22,9 @@ impl GooseAcpAgent {
             &req.name,
             &req.description,
             &req.content,
-            crate::sources::CreateSourceOptions {
-                global: req.global,
-                project_dir: project_dir.as_deref(),
-                properties: req.properties,
-            },
+            req.global,
+            project_dir.as_deref(),
+            req.properties,
         )?;
         Ok(CreateSourceResponse { source })
     }

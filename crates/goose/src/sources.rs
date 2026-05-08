@@ -775,35 +775,24 @@ fn update_agent_source(
 
 // --- Public CRUD ---
 
-pub struct CreateSourceOptions<'a> {
-    pub global: bool,
-    pub project_dir: Option<&'a str>,
-    pub properties: HashMap<String, serde_json::Value>,
-}
-
 pub fn create_source(
     source_type: SourceType,
     name: &str,
     description: &str,
     content: &str,
-    options: CreateSourceOptions<'_>,
+    global: bool,
+    project_dir: Option<&str>,
+    properties: HashMap<String, serde_json::Value>,
 ) -> Result<SourceEntry, Error> {
     require_mutable_type(source_type)?;
     if source_type == SourceType::Agent {
-        return create_agent_source(
-            name,
-            description,
-            content,
-            options.properties,
-            options.global,
-            options.project_dir,
-        );
+        return create_agent_source(name, description, content, properties, global, project_dir);
     }
 
     match source_type {
         SourceType::Skill => {
             validate_skill_name(name)?;
-            let dir = skill_base_dir(options.global, options.project_dir)?.join(name);
+            let dir = skill_base_dir(global, project_dir)?.join(name);
 
             if dir.exists() {
                 return Err(Error::invalid_params()
@@ -814,7 +803,7 @@ pub fn create_source(
                 Error::internal_error().data(format!("Failed to create source directory: {e}"))
             })?;
             let file_path = dir.join("SKILL.md");
-            let md = build_skill_md(name, description, content, &options.properties);
+            let md = build_skill_md(name, description, content, &properties);
             fs::write(&file_path, md).map_err(|e| {
                 Error::internal_error().data(format!("Failed to write SKILL.md: {e}"))
             })?;
@@ -824,8 +813,8 @@ pub fn create_source(
                 description,
                 content,
                 &dir,
-                options.global,
-                options.properties,
+                global,
+                properties,
             ))
         }
         SourceType::Project => {
@@ -841,12 +830,11 @@ pub fn create_source(
             }
             // The display name comes from `properties.title`; if absent, the
             // file's frontmatter `name:` is the slug itself.
-            let display_name = options
-                .properties
+            let display_name = properties
                 .get("title")
                 .and_then(|v| v.as_str())
                 .unwrap_or(name);
-            let md = build_project_md(display_name, description, content, &options.properties);
+            let md = build_project_md(display_name, description, content, &properties);
             fs::write(&file, md).map_err(|e| {
                 Error::internal_error().data(format!("Failed to write project file: {e}"))
             })?;
@@ -1334,11 +1322,9 @@ pub fn import_sources(
                 &final_name,
                 &description,
                 &content,
-                CreateSourceOptions {
-                    global,
-                    project_dir,
-                    properties,
-                },
+                global,
+                project_dir,
+                properties,
             )
             .map(|entry| vec![entry])
         }
@@ -1358,11 +1344,9 @@ pub fn import_sources(
                 &final_name,
                 &description,
                 &content,
-                CreateSourceOptions {
-                    global: true,
-                    project_dir: None,
-                    properties,
-                },
+                true,
+                None,
+                properties,
             )
             .map(|entry| vec![entry])
         }
@@ -1447,11 +1431,9 @@ mod tests {
             "my-skill",
             "does the thing",
             "step one\nstep two",
-            CreateSourceOptions {
-                global: false,
-                project_dir: Some(project),
-                properties: HashMap::new(),
-            },
+            false,
+            Some(project),
+            HashMap::new(),
         )
         .unwrap();
         assert_eq!(created.name, "my-skill");
@@ -1488,11 +1470,9 @@ mod tests {
             "dup",
             "d",
             "c",
-            CreateSourceOptions {
-                global: false,
-                project_dir: Some(project),
-                properties: HashMap::new(),
-            },
+            false,
+            Some(project),
+            HashMap::new(),
         )
         .unwrap();
         let err = create_source(
@@ -1500,11 +1480,9 @@ mod tests {
             "dup",
             "d",
             "c",
-            CreateSourceOptions {
-                global: false,
-                project_dir: Some(project),
-                properties: HashMap::new(),
-            },
+            false,
+            Some(project),
+            HashMap::new(),
         )
         .unwrap_err();
         assert!(format!("{:?}", err).contains("already exists"));
@@ -1517,11 +1495,9 @@ mod tests {
             "x",
             "d",
             "c",
-            CreateSourceOptions {
-                global: false,
-                project_dir: None,
-                properties: HashMap::new(),
-            },
+            false,
+            None,
+            HashMap::new(),
         )
         .unwrap_err();
         assert!(format!("{:?}", err).contains("projectDir"));
@@ -1540,11 +1516,9 @@ mod tests {
             "portable",
             "describes itself",
             "body goes here",
-            CreateSourceOptions {
-                global: false,
-                project_dir: Some(project_a.to_str().unwrap()),
-                properties: HashMap::new(),
-            },
+            false,
+            Some(project_a.to_str().unwrap()),
+            HashMap::new(),
         )
         .unwrap();
 
@@ -1640,11 +1614,9 @@ mod tests {
             "busy",
             "d",
             "c",
-            CreateSourceOptions {
-                global: false,
-                project_dir: Some(project),
-                properties: HashMap::new(),
-            },
+            false,
+            Some(project),
+            HashMap::new(),
         )
         .unwrap();
 
@@ -1769,11 +1741,9 @@ mod tests {
             "x",
             "d",
             "c",
-            CreateSourceOptions {
-                global: false,
-                project_dir: Some(project),
-                properties: HashMap::new(),
-            },
+            false,
+            Some(project),
+            HashMap::new(),
         )
         .unwrap_err();
         assert!(format!("{:?}", err).contains("not supported"));
@@ -1835,11 +1805,9 @@ mod tests {
             "my-dir",
             "orig",
             "body",
-            CreateSourceOptions {
-                global: false,
-                project_dir: Some(project),
-                properties: HashMap::new(),
-            },
+            false,
+            Some(project),
+            HashMap::new(),
         )
         .unwrap();
 
