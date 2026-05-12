@@ -1764,16 +1764,16 @@ async fn handle_local_models_command(command: LocalModelsCommand) -> Result<()> 
         LocalModelsCommand::Download { spec } => {
             println!("Resolving {}...", spec);
             let manager = goose::download_manager::get_download_manager();
-            let resolve_task = tokio::spawn({
-                let spec = spec.clone();
-                async move { hf_models::resolve_local_model_spec(&spec).await }
-            });
-
-            while !resolve_task.is_finished() {
-                print_download_progress(manager);
-                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-            }
-            let resolved = resolve_task.await??;
+            let resolve_task = hf_models::resolve_local_model_spec(&spec);
+            tokio::pin!(resolve_task);
+            let resolved = loop {
+                tokio::select! {
+                    result = &mut resolve_task => break result?,
+                    _ = tokio::time::sleep(std::time::Duration::from_millis(500)) => {
+                        print_download_progress(manager);
+                    }
+                }
+            };
             let model_id = resolved.model_id();
             let total_size = resolved.total_size();
 
@@ -1823,8 +1823,8 @@ async fn handle_local_models_command(command: LocalModelsCommand) -> Result<()> 
                 .map_err(|_| anyhow::anyhow!("Failed to acquire registry lock"))?;
 
             if let Some(entry) = registry.get_model(&id) {
-                if entry.local_path.is_file() {
-                    std::fs::remove_file(&entry.local_path)?;
+                for path in entry.all_local_paths() {
+                    std::fs::remove_file(path)?;
                 }
                 registry.remove_model(&id)?;
                 println!("Deleted model: {}", id);
