@@ -485,6 +485,11 @@ pub async fn download_hf_model(
     let model_id = local_model_id_from_spec(&req.spec)
         .await
         .map_err(|e| ErrorResponse::bad_request(format!("Invalid spec: {}", e)))?;
+    let download_id = format!("{}-model", model_id);
+    if get_download_manager().is_downloading(&download_id) {
+        return Ok((StatusCode::ACCEPTED, Json(model_id)));
+    }
+
     let spec = req.spec.clone();
     let model_id_for_task = model_id.clone();
     tokio::spawn(async move {
@@ -596,11 +601,24 @@ pub async fn delete_local_model(Path(model_id): Path<String>) -> Result<StatusCo
         }
     }
 
-    // Only remove non-featured models from registry (featured ones stay as placeholders)
-    if !is_featured_model(&model_id) {
-        let mut registry = get_registry()
-            .lock()
-            .map_err(|_| ErrorResponse::internal("Failed to acquire registry lock"))?;
+    let mut registry = get_registry()
+        .lock()
+        .map_err(|_| ErrorResponse::internal("Failed to acquire registry lock"))?;
+    if is_featured_model(&model_id) {
+        if let Some(entry) = registry
+            .list_models_mut()
+            .iter_mut()
+            .find(|m| m.id == model_id)
+        {
+            entry.local_path = Paths::in_data_dir("models").join(&entry.filename);
+            entry.storage = LocalModelStorage::GooseManaged;
+            entry.size_bytes = 0;
+            entry.shard_files.clear();
+        }
+        registry
+            .save()
+            .map_err(|e| ErrorResponse::internal(format!("{}", e)))?;
+    } else {
         registry
             .remove_model(&model_id)
             .map_err(|e| ErrorResponse::internal(format!("{}", e)))?;
