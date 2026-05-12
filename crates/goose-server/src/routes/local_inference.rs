@@ -411,7 +411,7 @@ pub async fn get_repo_files(
 
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct DownloadModelRequest {
-    /// Model spec/download id like "bartowski/Llama-3.2-3B-Instruct-GGUF:Q4_K_M" or "mlx-community/Qwen3-4B-bf16@mlx:bf16"
+    /// Model spec/download id like "bartowski/Llama-3.2-3B-Instruct-GGUF:Q4_K_M" or "google/gemma-4-31B-it"
     pub spec: String,
 }
 

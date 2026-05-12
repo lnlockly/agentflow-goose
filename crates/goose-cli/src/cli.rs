@@ -1016,7 +1016,7 @@ enum LocalModelsCommand {
     /// Download a model from HuggingFace
     #[command(about = "Download a local model from a search result")]
     Download {
-        /// Model spec/download id, e.g. user/repo:Q4_K_M or user/repo@mlx:bf16
+        /// Model spec/download id, e.g. user/repo:Q4_K_M or user/repo
         spec: String,
     },
 
