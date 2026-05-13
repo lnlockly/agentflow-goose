@@ -530,6 +530,277 @@ export type GooseApp = McpAppResource & (WindowProps | null) & {
     prd?: string | null;
 };
 
+/**
+ * JSON Schema representation of Goose's config.yaml.
+ *
+ * All keys are optional. Unknown keys are allowed (additionalProperties: true)
+ * because Goose passes undocumented provider-specific keys through as
+ * environment variable overrides.
+ */
+export type GooseConfigSchema = {
+    ANTHROPIC_HOST?: string | null;
+    AVIAN_HOST?: string | null;
+    AWS_PROFILE?: string | null;
+    AWS_REGION?: string | null;
+    AZURE_OPENAI_API_VERSION?: string | null;
+    AZURE_OPENAI_DEPLOYMENT_NAME?: string | null;
+    AZURE_OPENAI_ENDPOINT?: string | null;
+    BEDROCK_BACKOFF_MULTIPLIER?: number | null;
+    BEDROCK_ENABLE_CACHING?: boolean | null;
+    BEDROCK_INITIAL_RETRY_INTERVAL_MS?: number | null;
+    BEDROCK_MAX_RETRIES?: number | null;
+    BEDROCK_MAX_RETRY_INTERVAL_MS?: number | null;
+    CHATGPT_CODEX_REASONING_EFFORT?: string | null;
+    CLAUDE_CODE_COMMAND?: string | null;
+    CLAUDE_THINKING_BUDGET?: number | null;
+    CLAUDE_THINKING_EFFORT?: string | null;
+    CLAUDE_THINKING_TYPE?: string | null;
+    CODEX_COMMAND?: string | null;
+    CODEX_ENABLE_SKILLS?: string | null;
+    CODEX_REASONING_EFFORT?: string | null;
+    CODEX_SKIP_GIT_CHECK?: string | null;
+    CODE_MODE_TOOL_DISCLOSURE?: string | null;
+    CONTEXT_FILE_NAMES?: Array<string> | null;
+    CURSOR_AGENT_COMMAND?: string | null;
+    DATABRICKS_BACKOFF_MULTIPLIER?: string | null;
+    DATABRICKS_HOST?: string | null;
+    DATABRICKS_INITIAL_RETRY_INTERVAL_MS?: string | null;
+    DATABRICKS_MAX_RETRIES?: string | null;
+    DATABRICKS_MAX_RETRY_INTERVAL_MS?: string | null;
+    EDIT_MODE?: string | null;
+    GCP_BACKOFF_MULTIPLIER?: string | null;
+    GCP_INITIAL_RETRY_INTERVAL_MS?: string | null;
+    GCP_LOCATION?: string | null;
+    GCP_MAX_RETRIES?: string | null;
+    GCP_MAX_RETRY_INTERVAL_MS?: string | null;
+    GCP_PROJECT_ID?: string | null;
+    GEMINI25_THINKING_BUDGET?: number | null;
+    GEMINI3_THINKING_LEVEL?: string | null;
+    GEMINI_CLI_COMMAND?: string | null;
+    GITHUB_COPILOT_CLIENT_ID?: string | null;
+    GITHUB_COPILOT_HOST?: string | null;
+    GITHUB_COPILOT_TOKEN_URL?: string | null;
+    GOOGLE_HOST?: string | null;
+    GOOSE_ALLOWLIST?: string | null;
+    GOOSE_AUTO_COMPACT_THRESHOLD?: number | null;
+    GOOSE_CA_CERT_PATH?: string | null;
+    GOOSE_CLIENT_CERT_PATH?: string | null;
+    GOOSE_CLIENT_KEY_PATH?: string | null;
+    GOOSE_CLI_DARK_THEME?: string | null;
+    GOOSE_CLI_LIGHT_THEME?: string | null;
+    GOOSE_CLI_MIN_PRIORITY?: number | null;
+    GOOSE_CLI_NEWLINE_KEY?: string | null;
+    GOOSE_CLI_SHOW_COST?: boolean | null;
+    GOOSE_CLI_SHOW_THINKING?: boolean | null;
+    GOOSE_CLI_THEME?: string | null;
+    GOOSE_CONTEXT_LIMIT?: number | null;
+    GOOSE_DATABRICKS_CLIENT_REQUEST_ID?: boolean | null;
+    GOOSE_DEBUG?: boolean | null;
+    GOOSE_DEFAULT_EXTENSION_TIMEOUT?: number | null;
+    GOOSE_DISABLE_KEYRING?: string | null;
+    GOOSE_DISABLE_SESSION_NAMING?: boolean | null;
+    GOOSE_INPUT_LIMIT?: number | null;
+    GOOSE_LOCAL_ENABLE_THINKING?: boolean | null;
+    GOOSE_MAX_ACTIVE_AGENTS?: number | null;
+    GOOSE_MAX_BACKGROUND_TASKS?: number | null;
+    GOOSE_MAX_TOKENS?: number | null;
+    GOOSE_MAX_TURNS?: number | null;
+    GOOSE_MODE?: GooseMode | null;
+    GOOSE_MODEL?: string | null;
+    GOOSE_PLANNER_MODEL?: string | null;
+    GOOSE_PLANNER_PROVIDER?: string | null;
+    GOOSE_PROMPT_EDITOR?: string | null;
+    GOOSE_PROMPT_EDITOR_ALWAYS?: boolean | null;
+    GOOSE_PROVIDER?: string | null;
+    GOOSE_RECIPE_GITHUB_REPO?: string | null;
+    GOOSE_RECIPE_ON_FAILURE_TIMEOUT_SECONDS?: number | null;
+    GOOSE_RECIPE_RETRY_TIMEOUT_SECONDS?: number | null;
+    GOOSE_SEARCH_PATHS?: Array<string> | null;
+    GOOSE_SHOW_FULL_OUTPUT?: boolean | null;
+    GOOSE_STATUS_HOOK?: string | null;
+    GOOSE_STREAM_TIMEOUT?: number | null;
+    GOOSE_SUBAGENT_MAX_TURNS?: number | null;
+    GOOSE_SUBAGENT_MODEL?: string | null;
+    GOOSE_SUBAGENT_PROVIDER?: string | null;
+    GOOSE_SYSTEM_PROMPT_FILE_PATH?: string | null;
+    GOOSE_TELEMETRY_ENABLED?: boolean | null;
+    GOOSE_TOOL_CALL_CUTOFF?: number | null;
+    GOOSE_TOOL_PAIR_SUMMARIZATION?: boolean | null;
+    LITELLM_BASE_PATH?: string | null;
+    LITELLM_HOST?: string | null;
+    LITELLM_TIMEOUT?: number | null;
+    OLLAMA_HOST?: string | null;
+    OLLAMA_STREAM_TIMEOUT?: number | null;
+    OLLAMA_STREAM_USAGE?: boolean | null;
+    OLLAMA_TIMEOUT?: number | null;
+    OPENAI_BASE_PATH?: string | null;
+    OPENAI_BASE_URL?: string | null;
+    OPENAI_HOST?: string | null;
+    OPENAI_ORGANIZATION?: string | null;
+    OPENAI_PROJECT?: string | null;
+    OPENAI_TIMEOUT?: number | null;
+    OPENROUTER_HOST?: string | null;
+    RANDOM_THINKING_MESSAGES?: boolean | null;
+    SAGEMAKER_ENDPOINT_NAME?: string | null;
+    SECURITY_COMMAND_CLASSIFIER_ENABLED?: boolean | null;
+    SECURITY_PROMPT_CLASSIFIER_ENABLED?: boolean | null;
+    SECURITY_PROMPT_CLASSIFIER_ENDPOINT?: string | null;
+    SECURITY_PROMPT_CLASSIFIER_MODEL?: string | null;
+    SECURITY_PROMPT_ENABLED?: boolean | null;
+    SECURITY_PROMPT_THRESHOLD?: number | null;
+    SNOWFLAKE_HOST?: string | null;
+    TETRATE_HOST?: string | null;
+    VENICE_BASE_PATH?: string | null;
+    VENICE_HOST?: string | null;
+    VENICE_MODELS_PATH?: string | null;
+    XAI_HOST?: string | null;
+    experiments?: {
+        [key: string]: boolean;
+    } | null;
+    extensions?: {
+        [key: string]: ExtensionEntry;
+    } | null;
+    otel_exporter_otlp_endpoint?: string | null;
+    otel_exporter_otlp_timeout?: number | null;
+    slash_commands?: Array<SlashCommandMapping> | null;
+    tunnel_auto_start?: boolean | null;
+};
+
+export type GooseConfigUpdate = {
+    ANTHROPIC_API_KEY?: string | null;
+    ANTHROPIC_HOST?: string | null;
+    AVIAN_HOST?: string | null;
+    AWS_PROFILE?: string | null;
+    AWS_REGION?: string | null;
+    AZURE_OPENAI_API_KEY?: string | null;
+    AZURE_OPENAI_API_VERSION?: string | null;
+    AZURE_OPENAI_DEPLOYMENT_NAME?: string | null;
+    AZURE_OPENAI_ENDPOINT?: string | null;
+    BEDROCK_BACKOFF_MULTIPLIER?: number | null;
+    BEDROCK_ENABLE_CACHING?: boolean | null;
+    BEDROCK_INITIAL_RETRY_INTERVAL_MS?: number | null;
+    BEDROCK_MAX_RETRIES?: number | null;
+    BEDROCK_MAX_RETRY_INTERVAL_MS?: number | null;
+    CHATGPT_CODEX_REASONING_EFFORT?: string | null;
+    CLAUDE_CODE_COMMAND?: string | null;
+    CLAUDE_THINKING_BUDGET?: number | null;
+    CLAUDE_THINKING_EFFORT?: string | null;
+    CLAUDE_THINKING_TYPE?: string | null;
+    CODEX_COMMAND?: string | null;
+    CODEX_ENABLE_SKILLS?: string | null;
+    CODEX_REASONING_EFFORT?: string | null;
+    CODEX_SKIP_GIT_CHECK?: string | null;
+    CODE_MODE_TOOL_DISCLOSURE?: string | null;
+    CONTEXT_FILE_NAMES?: Array<string> | null;
+    CURSOR_AGENT_COMMAND?: string | null;
+    DATABRICKS_BACKOFF_MULTIPLIER?: string | null;
+    DATABRICKS_HOST?: string | null;
+    DATABRICKS_INITIAL_RETRY_INTERVAL_MS?: string | null;
+    DATABRICKS_MAX_RETRIES?: string | null;
+    DATABRICKS_MAX_RETRY_INTERVAL_MS?: string | null;
+    DATABRICKS_TOKEN?: string | null;
+    EDIT_MODE?: string | null;
+    GCP_BACKOFF_MULTIPLIER?: string | null;
+    GCP_INITIAL_RETRY_INTERVAL_MS?: string | null;
+    GCP_LOCATION?: string | null;
+    GCP_MAX_RETRIES?: string | null;
+    GCP_MAX_RETRY_INTERVAL_MS?: string | null;
+    GCP_PROJECT_ID?: string | null;
+    GEMINI25_THINKING_BUDGET?: number | null;
+    GEMINI3_THINKING_LEVEL?: string | null;
+    GEMINI_CLI_COMMAND?: string | null;
+    GITHUB_COPILOT_CLIENT_ID?: string | null;
+    GITHUB_COPILOT_HOST?: string | null;
+    GITHUB_COPILOT_TOKEN_URL?: string | null;
+    GOOGLE_API_KEY?: string | null;
+    GOOGLE_HOST?: string | null;
+    GOOSE_ALLOWLIST?: string | null;
+    GOOSE_AUTO_COMPACT_THRESHOLD?: number | null;
+    GOOSE_CA_CERT_PATH?: string | null;
+    GOOSE_CLIENT_CERT_PATH?: string | null;
+    GOOSE_CLIENT_KEY_PATH?: string | null;
+    GOOSE_CLI_DARK_THEME?: string | null;
+    GOOSE_CLI_LIGHT_THEME?: string | null;
+    GOOSE_CLI_MIN_PRIORITY?: number | null;
+    GOOSE_CLI_NEWLINE_KEY?: string | null;
+    GOOSE_CLI_SHOW_COST?: boolean | null;
+    GOOSE_CLI_SHOW_THINKING?: boolean | null;
+    GOOSE_CLI_THEME?: string | null;
+    GOOSE_CONTEXT_LIMIT?: number | null;
+    GOOSE_DATABRICKS_CLIENT_REQUEST_ID?: boolean | null;
+    GOOSE_DEBUG?: boolean | null;
+    GOOSE_DEFAULT_EXTENSION_TIMEOUT?: number | null;
+    GOOSE_DISABLE_KEYRING?: string | null;
+    GOOSE_DISABLE_SESSION_NAMING?: boolean | null;
+    GOOSE_INPUT_LIMIT?: number | null;
+    GOOSE_LOCAL_ENABLE_THINKING?: boolean | null;
+    GOOSE_MAX_ACTIVE_AGENTS?: number | null;
+    GOOSE_MAX_BACKGROUND_TASKS?: number | null;
+    GOOSE_MAX_TOKENS?: number | null;
+    GOOSE_MAX_TURNS?: number | null;
+    GOOSE_MODE?: GooseMode | null;
+    GOOSE_MODEL?: string | null;
+    GOOSE_PLANNER_MODEL?: string | null;
+    GOOSE_PLANNER_PROVIDER?: string | null;
+    GOOSE_PROMPT_EDITOR?: string | null;
+    GOOSE_PROMPT_EDITOR_ALWAYS?: boolean | null;
+    GOOSE_PROVIDER?: string | null;
+    GOOSE_RECIPE_GITHUB_REPO?: string | null;
+    GOOSE_RECIPE_ON_FAILURE_TIMEOUT_SECONDS?: number | null;
+    GOOSE_RECIPE_RETRY_TIMEOUT_SECONDS?: number | null;
+    GOOSE_SEARCH_PATHS?: Array<string> | null;
+    GOOSE_SHOW_FULL_OUTPUT?: boolean | null;
+    GOOSE_STATUS_HOOK?: string | null;
+    GOOSE_STREAM_TIMEOUT?: number | null;
+    GOOSE_SUBAGENT_MAX_TURNS?: number | null;
+    GOOSE_SUBAGENT_MODEL?: string | null;
+    GOOSE_SUBAGENT_PROVIDER?: string | null;
+    GOOSE_SYSTEM_PROMPT_FILE_PATH?: string | null;
+    GOOSE_TELEMETRY_ENABLED?: boolean | null;
+    GOOSE_TOOL_CALL_CUTOFF?: number | null;
+    GOOSE_TOOL_PAIR_SUMMARIZATION?: boolean | null;
+    LITELLM_BASE_PATH?: string | null;
+    LITELLM_HOST?: string | null;
+    LITELLM_TIMEOUT?: number | null;
+    OLLAMA_HOST?: string | null;
+    OLLAMA_STREAM_TIMEOUT?: number | null;
+    OLLAMA_STREAM_USAGE?: boolean | null;
+    OLLAMA_TIMEOUT?: number | null;
+    OPENAI_API_KEY?: string | null;
+    OPENAI_BASE_PATH?: string | null;
+    OPENAI_BASE_URL?: string | null;
+    OPENAI_HOST?: string | null;
+    OPENAI_ORGANIZATION?: string | null;
+    OPENAI_PROJECT?: string | null;
+    OPENAI_TIMEOUT?: number | null;
+    OPENROUTER_API_KEY?: string | null;
+    OPENROUTER_HOST?: string | null;
+    RANDOM_THINKING_MESSAGES?: boolean | null;
+    SAGEMAKER_ENDPOINT_NAME?: string | null;
+    SECURITY_COMMAND_CLASSIFIER_ENABLED?: boolean | null;
+    SECURITY_PROMPT_CLASSIFIER_ENABLED?: boolean | null;
+    SECURITY_PROMPT_CLASSIFIER_ENDPOINT?: string | null;
+    SECURITY_PROMPT_CLASSIFIER_MODEL?: string | null;
+    SECURITY_PROMPT_ENABLED?: boolean | null;
+    SECURITY_PROMPT_THRESHOLD?: number | null;
+    SNOWFLAKE_HOST?: string | null;
+    TETRATE_HOST?: string | null;
+    VENICE_BASE_PATH?: string | null;
+    VENICE_HOST?: string | null;
+    VENICE_MODELS_PATH?: string | null;
+    XAI_HOST?: string | null;
+    experiments?: {
+        [key: string]: boolean;
+    } | null;
+    extensions?: {
+        [key: string]: ExtensionEntry;
+    } | null;
+    otel_exporter_otlp_endpoint?: string | null;
+    otel_exporter_otlp_timeout?: number | null;
+    slash_commands?: Array<SlashCommandMapping> | null;
+    tunnel_auto_start?: boolean | null;
+};
+
 export type GooseMode = 'auto' | 'approve' | 'smart_approve' | 'chat';
 
 /**
@@ -1390,6 +1661,11 @@ export type SlashCommand = {
     command: string;
     command_type: CommandType;
     help: string;
+};
+
+export type SlashCommandMapping = {
+    command: string;
+    recipe_path: string;
 };
 
 export type SlashCommandsResponse = {
@@ -2865,6 +3141,52 @@ export type GetSlashCommandsResponses = {
 };
 
 export type GetSlashCommandsResponse = GetSlashCommandsResponses[keyof GetSlashCommandsResponses];
+
+export type ReadTypedConfigData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/config/typed';
+};
+
+export type ReadTypedConfigErrors = {
+    /**
+     * Internal server error
+     */
+    500: unknown;
+};
+
+export type ReadTypedConfigResponses = {
+    /**
+     * All configuration values (typed)
+     */
+    200: GooseConfigSchema;
+};
+
+export type ReadTypedConfigResponse = ReadTypedConfigResponses[keyof ReadTypedConfigResponses];
+
+export type PatchTypedConfigData = {
+    body: GooseConfigUpdate;
+    path?: never;
+    query?: never;
+    url: '/config/typed';
+};
+
+export type PatchTypedConfigErrors = {
+    /**
+     * Internal server error
+     */
+    500: unknown;
+};
+
+export type PatchTypedConfigResponses = {
+    /**
+     * Configuration updated
+     */
+    200: GooseConfigSchema;
+};
+
+export type PatchTypedConfigResponse = PatchTypedConfigResponses[keyof PatchTypedConfigResponses];
 
 export type UpsertConfigData = {
     body: UpsertConfigQuery;

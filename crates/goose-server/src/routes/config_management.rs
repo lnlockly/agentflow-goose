@@ -9,6 +9,7 @@ use axum::{
 };
 use goose::config::declarative_providers::LoadedProvider;
 use goose::config::paths::Paths;
+use goose::config::schema::{GooseConfigSchema, GooseConfigUpdate};
 use goose::config::ExtensionEntry;
 use goose::config::{Config, ConfigError};
 use goose::custom_requests::SourceType;
@@ -915,9 +916,45 @@ pub async fn configure_provider_oauth(
     Ok(Json("OAuth configuration completed".to_string()))
 }
 
+#[utoipa::path(
+    get,
+    path = "/config/typed",
+    responses(
+        (status = 200, description = "All configuration values (typed)", body = GooseConfigSchema),
+        (status = 500, description = "Internal server error")
+    )
+)]
+pub async fn read_typed_config() -> Result<Json<GooseConfigSchema>, ErrorResponse> {
+    let config = Config::global();
+    let typed = GooseConfigSchema::from_config(config);
+    Ok(Json(typed))
+}
+
+#[utoipa::path(
+    patch,
+    path = "/config/typed",
+    request_body = GooseConfigUpdate,
+    responses(
+        (status = 200, description = "Configuration updated", body = GooseConfigSchema),
+        (status = 500, description = "Internal server error")
+    )
+)]
+pub async fn patch_typed_config(
+    Json(update): Json<GooseConfigUpdate>,
+) -> Result<Json<GooseConfigSchema>, ErrorResponse> {
+    let config = Config::global();
+    update.apply_to_config(config)?;
+    let typed = GooseConfigSchema::from_config(config);
+    Ok(Json(typed))
+}
+
 pub fn routes(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/config", get(read_all_config))
+        .route(
+            "/config/typed",
+            get(read_typed_config).patch(patch_typed_config),
+        )
         .route("/config/upsert", post(upsert_config))
         .route("/config/remove", post(remove_config))
         .route("/config/read", post(read_config))
