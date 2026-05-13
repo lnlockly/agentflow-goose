@@ -14,6 +14,7 @@ import PopularChatTopics from './PopularChatTopics';
 import ProgressiveMessageList from './ProgressiveMessageList';
 import { MainPanelLayout } from './Layout/MainPanelLayout';
 import ChatInput from './ChatInput';
+import SuggestionBanner from './SuggestionBanner';
 import { ScrollArea, ScrollAreaHandle } from './ui/scroll-area';
 import { useFileDrop } from '../hooks/useFileDrop';
 import { Message } from '../api';
@@ -490,6 +491,11 @@ export default function BaseChat({
             </div>
           )}
         </div>
+
+        <SuggestionBanner
+          sessionId={sessionId}
+          onAcceptSuggestion={(text) => handleSubmit({ msg: `[Suggestion from collaborator]: ${text}`, images: [] })}
+        />
 
         <div
           className={`relative z-10 ${disableAnimation ? '' : 'animate-[fadein_400ms_ease-in_forwards]'}`}
