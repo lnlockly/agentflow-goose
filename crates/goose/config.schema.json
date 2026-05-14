@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "GooseConfigSchema",
-  "description": "JSON Schema representation of Goose's config.yaml.\n\nAll keys are optional. Unknown keys are allowed (additionalProperties: true)\nbecause Goose passes undocumented provider-specific keys through as\nenvironment variable overrides.",
+  "description": "JSON Schema representation of Goose's config.yaml.\n\nAll fields are optional. The standalone JSON Schema (`config.schema.json`)\nsets `additionalProperties: true` so config.yaml can carry undocumented\nprovider-specific keys as env-var overrides. However, the typed API\nendpoints only persist fields explicitly declared on this struct — unknown\nkeys in a `PATCH /config/typed` payload are silently dropped by serde.",
   "type": "object",
   "properties": {
     "GOOSE_PROVIDER": {
@@ -160,6 +160,12 @@
       ]
     },
     "GOOSE_SHOW_FULL_OUTPUT": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "GOOSE_DISABLE_TOOL_CALL_SUMMARY": {
       "type": [
         "boolean",
         "null"

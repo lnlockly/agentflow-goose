@@ -16,7 +16,7 @@ fn main() {
         let existing = fs::read_to_string(&schema_path).unwrap_or_default();
         if existing.trim() != json_str.trim() {
             eprintln!(
-                "Config schema is out of date. Run `cargo run -p goose --bin generate_config_schema` to regenerate."
+                "Config schema is out of date. Run `cargo run -p goose --bin generate-config-schema` to regenerate."
             );
             std::process::exit(1);
         }

@@ -930,9 +930,18 @@ pub async fn read_typed_config() -> Result<Json<GooseConfigSchema>, ErrorRespons
     Ok(Json(typed))
 }
 
-/// Update configuration values. Fields set to null are left unchanged — to delete
-/// a key, use `POST /config/remove`. Secret fields (API keys) are stored in the
-/// system keyring, not the config file.
+/// Update configuration values via sparse patch. Only send the fields you want
+/// to change — omitted and null fields are both left unchanged (serde cannot
+/// distinguish the two). To delete a key, use `POST /config/remove`.
+///
+/// Nested objects (`extensions`, `slash_commands`, `experiments`) use whole-value
+/// replacement, not deep merge. Secret fields (API keys) are stored in the system
+/// keyring, not the config file.
+///
+/// **Caution:** `GET /config/typed` returns values merged from env vars, system
+/// config, and user config. Sending the full GET response back as a PATCH payload
+/// can persist inherited/env values into the user config file. Only send fields
+/// the user explicitly changed.
 #[utoipa::path(
     patch,
     path = "/config/typed",

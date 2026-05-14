@@ -273,10 +273,19 @@ export const getSlashCommands = <ThrowOnError extends boolean = false>(options?:
 export const readTypedConfig = <ThrowOnError extends boolean = false>(options?: Options<ReadTypedConfigData, ThrowOnError>) => (options?.client ?? client).get<ReadTypedConfigResponses, ReadTypedConfigErrors, ThrowOnError>({ url: '/config/typed', ...options });
 
 /**
- * Update configuration values. Fields set to null are left unchanged — to delete
+ * Update configuration values via sparse patch. Only send the fields you want
  *
- * a key, use `POST /config/remove`. Secret fields (API keys) are stored in the
- * system keyring, not the config file.
+ * to change — omitted and null fields are both left unchanged (serde cannot
+ * distinguish the two). To delete a key, use `POST /config/remove`.
+ *
+ * Nested objects (`extensions`, `slash_commands`, `experiments`) use whole-value
+ * replacement, not deep merge. Secret fields (API keys) are stored in the system
+ * keyring, not the config file.
+ *
+ * **Caution:** `GET /config/typed` returns values merged from env vars, system
+ * config, and user config. Sending the full GET response back as a PATCH payload
+ * can persist inherited/env values into the user config file. Only send fields
+ * the user explicitly changed.
  */
 export const patchTypedConfig = <ThrowOnError extends boolean = false>(options: Options<PatchTypedConfigData, ThrowOnError>) => (options.client ?? client).patch<PatchTypedConfigResponses, PatchTypedConfigErrors, ThrowOnError>({
     url: '/config/typed',

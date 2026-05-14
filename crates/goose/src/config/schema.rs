@@ -11,9 +11,11 @@ use crate::slash_commands::SlashCommandMapping;
 
 /// JSON Schema representation of Goose's config.yaml.
 ///
-/// All keys are optional. Unknown keys are allowed (additionalProperties: true)
-/// because Goose passes undocumented provider-specific keys through as
-/// environment variable overrides.
+/// All fields are optional. The standalone JSON Schema (`config.schema.json`)
+/// sets `additionalProperties: true` so config.yaml can carry undocumented
+/// provider-specific keys as env-var overrides. However, the typed API
+/// endpoints only persist fields explicitly declared on this struct — unknown
+/// keys in a `PATCH /config/typed` payload are silently dropped by serde.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, ToSchema)]
 pub struct GooseConfigSchema {
     // === Core Goose Settings ===
@@ -63,6 +65,8 @@ pub struct GooseConfigSchema {
     pub goose_debug: Option<bool>,
     #[serde(rename = "GOOSE_SHOW_FULL_OUTPUT")]
     pub goose_show_full_output: Option<bool>,
+    #[serde(rename = "GOOSE_DISABLE_TOOL_CALL_SUMMARY")]
+    pub goose_disable_tool_call_summary: Option<bool>,
     #[serde(rename = "GOOSE_STATUS_HOOK")]
     pub goose_status_hook: Option<String>,
     #[serde(rename = "GOOSE_LOCAL_ENABLE_THINKING")]
@@ -306,6 +310,7 @@ impl GooseConfigSchema {
         "GOOSE_SYSTEM_PROMPT_FILE_PATH",
         "GOOSE_DEBUG",
         "GOOSE_SHOW_FULL_OUTPUT",
+        "GOOSE_DISABLE_TOOL_CALL_SUMMARY",
         "GOOSE_STATUS_HOOK",
         "GOOSE_LOCAL_ENABLE_THINKING",
         "GOOSE_DATABRICKS_CLIENT_REQUEST_ID",
@@ -465,6 +470,9 @@ impl GooseConfigSchema {
             goose_system_prompt_file_path: config.get_param("GOOSE_SYSTEM_PROMPT_FILE_PATH").ok(),
             goose_debug: config.get_param("GOOSE_DEBUG").ok(),
             goose_show_full_output: config.get_param("GOOSE_SHOW_FULL_OUTPUT").ok(),
+            goose_disable_tool_call_summary: config
+                .get_param("GOOSE_DISABLE_TOOL_CALL_SUMMARY")
+                .ok(),
             goose_status_hook: config.get_param("GOOSE_STATUS_HOOK").ok(),
             goose_local_enable_thinking: config.get_param("GOOSE_LOCAL_ENABLE_THINKING").ok(),
             goose_databricks_client_request_id: config
@@ -642,6 +650,10 @@ impl GooseConfigSchema {
         );
         push_if_some!(self.goose_debug, "GOOSE_DEBUG");
         push_if_some!(self.goose_show_full_output, "GOOSE_SHOW_FULL_OUTPUT");
+        push_if_some!(
+            self.goose_disable_tool_call_summary,
+            "GOOSE_DISABLE_TOOL_CALL_SUMMARY"
+        );
         push_if_some!(self.goose_status_hook, "GOOSE_STATUS_HOOK");
         push_if_some!(
             self.goose_local_enable_thinking,
@@ -810,7 +822,11 @@ impl GooseConfigSchema {
 ///
 /// Embeds all non-secret fields from [`GooseConfigSchema`] via `#[serde(flatten)]`,
 /// plus provider API key fields that route to the system keyring.
-/// Fields set to `null` are left unchanged — to delete a key, use `POST /config/remove`.
+///
+/// **Sparse patch semantics:** Only send fields you want to change. Fields set to
+/// `null` (or omitted) are left unchanged — serde cannot distinguish the two cases.
+/// To delete a key, use `POST /config/remove`. Nested objects (`extensions`,
+/// `slash_commands`, `experiments`) use whole-value replacement, not deep merge.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, ToSchema)]
 pub struct GooseConfigUpdate {
     #[serde(flatten)]
@@ -843,6 +859,10 @@ pub struct GooseConfigUpdate {
     pub snowflake_token: Option<String>,
     #[serde(rename = "GROQ_API_KEY")]
     pub groq_api_key: Option<String>,
+    #[serde(rename = "NANOGPT_API_KEY")]
+    pub nanogpt_api_key: Option<String>,
+    #[serde(rename = "LITELLM_CUSTOM_HEADERS")]
+    pub litellm_custom_headers: Option<String>,
 }
 
 impl GooseConfigUpdate {
@@ -875,6 +895,8 @@ impl GooseConfigUpdate {
         push_secret!(self.litellm_api_key, "LITELLM_API_KEY");
         push_secret!(self.snowflake_token, "SNOWFLAKE_TOKEN");
         push_secret!(self.groq_api_key, "GROQ_API_KEY");
+        push_secret!(self.nanogpt_api_key, "NANOGPT_API_KEY");
+        push_secret!(self.litellm_custom_headers, "LITELLM_CUSTOM_HEADERS");
 
         config.set_secret_values(&secret_updates)
     }
@@ -960,6 +982,19 @@ mod tests {
                     "SECURITY_PROMPT_THRESHOLD".to_string(),
                     serde_json::json!(0.75),
                 ),
+                (
+                    "GOOSE_MODE".to_string(),
+                    serde_json::Value::String("auto".to_string()),
+                ),
+                (
+                    "GOOSE_SEARCH_PATHS".to_string(),
+                    serde_json::json!(["/usr/local/bin", "/opt/bin"]),
+                ),
+                (
+                    "GOOSE_CONTEXT_LIMIT".to_string(),
+                    serde_json::Value::Number(128000u64.into()),
+                ),
+                ("GOOSE_CLI_MIN_PRIORITY".to_string(), serde_json::json!(0.5)),
             ])
             .expect("set_param_values should succeed");
 
@@ -969,6 +1004,12 @@ mod tests {
         assert_eq!(typed.goose_debug, Some(true));
         assert_eq!(typed.goose_disable_keyring, Some(true));
         assert_eq!(typed.security_prompt_threshold, Some(0.75));
+        assert_eq!(typed.goose_mode, Some(GooseMode::Auto));
+        assert_eq!(
+            typed.goose_search_paths,
+            Some(vec!["/usr/local/bin".to_string(), "/opt/bin".to_string()])
+        );
+        assert_eq!(typed.goose_context_limit, Some(128000));
 
         // Roundtrip: apply to a fresh config and verify
         let config_file2 = tempfile::NamedTempFile::new().unwrap();
@@ -983,5 +1024,117 @@ mod tests {
         assert_eq!(typed2.goose_max_tokens, typed.goose_max_tokens);
         assert_eq!(typed2.goose_debug, typed.goose_debug);
         assert_eq!(typed2.goose_disable_keyring, typed.goose_disable_keyring);
+        assert_eq!(typed2.goose_mode, typed.goose_mode);
+        assert_eq!(typed2.goose_search_paths, typed.goose_search_paths);
+        assert_eq!(typed2.goose_context_limit, typed.goose_context_limit);
+    }
+
+    #[test]
+    fn from_config_and_apply_cover_all_string_keys() {
+        let config_file = tempfile::NamedTempFile::new().unwrap();
+        let secrets_file = tempfile::NamedTempFile::new().unwrap();
+        let config =
+            Config::new_with_file_secrets(config_file.path(), secrets_file.path()).unwrap();
+
+        // Non-string keys need type-appropriate values; get_param fails if
+        // the stored value can't deserialize to the field's Rust type.
+        // Test string-typed keys exhaustively, and spot-check typed keys
+        // in the roundtrip test above.
+        let non_string_keys: std::collections::HashSet<&str> = [
+            "GOOSE_MODE",
+            "GOOSE_MAX_TOKENS",
+            "GOOSE_CONTEXT_LIMIT",
+            "GOOSE_INPUT_LIMIT",
+            "GOOSE_MAX_TURNS",
+            "GOOSE_MAX_ACTIVE_AGENTS",
+            "GOOSE_AUTO_COMPACT_THRESHOLD",
+            "GOOSE_TOOL_PAIR_SUMMARIZATION",
+            "GOOSE_TOOL_CALL_CUTOFF",
+            "GOOSE_STREAM_TIMEOUT",
+            "GOOSE_SEARCH_PATHS",
+            "GOOSE_DISABLE_SESSION_NAMING",
+            "GOOSE_DISABLE_KEYRING",
+            "GOOSE_TELEMETRY_ENABLED",
+            "GOOSE_DEFAULT_EXTENSION_TIMEOUT",
+            "GOOSE_PROMPT_EDITOR_ALWAYS",
+            "GOOSE_DEBUG",
+            "GOOSE_SHOW_FULL_OUTPUT",
+            "GOOSE_DISABLE_TOOL_CALL_SUMMARY",
+            "GOOSE_LOCAL_ENABLE_THINKING",
+            "GOOSE_DATABRICKS_CLIENT_REQUEST_ID",
+            "RANDOM_THINKING_MESSAGES",
+            "GOOSE_SUBAGENT_MAX_TURNS",
+            "GOOSE_MAX_BACKGROUND_TASKS",
+            "GOOSE_RECIPE_RETRY_TIMEOUT_SECONDS",
+            "GOOSE_RECIPE_ON_FAILURE_TIMEOUT_SECONDS",
+            "GOOSE_CLI_MIN_PRIORITY",
+            "GOOSE_CLI_SHOW_COST",
+            "GOOSE_CLI_SHOW_THINKING",
+            "CLAUDE_THINKING_BUDGET",
+            "GEMINI25_THINKING_BUDGET",
+            "SECURITY_PROMPT_ENABLED",
+            "SECURITY_PROMPT_THRESHOLD",
+            "SECURITY_PROMPT_CLASSIFIER_ENABLED",
+            "SECURITY_COMMAND_CLASSIFIER_ENABLED",
+            "OPENAI_TIMEOUT",
+            "OLLAMA_TIMEOUT",
+            "OLLAMA_STREAM_TIMEOUT",
+            "OLLAMA_STREAM_USAGE",
+            "BEDROCK_MAX_RETRIES",
+            "BEDROCK_INITIAL_RETRY_INTERVAL_MS",
+            "BEDROCK_BACKOFF_MULTIPLIER",
+            "BEDROCK_MAX_RETRY_INTERVAL_MS",
+            "BEDROCK_ENABLE_CACHING",
+            "LITELLM_TIMEOUT",
+            "otel_exporter_otlp_timeout",
+            "tunnel_auto_start",
+            "CONTEXT_FILE_NAMES",
+        ]
+        .iter()
+        .copied()
+        .collect();
+
+        let string_keys: Vec<&&str> = GooseConfigSchema::ALL_KEYS
+            .iter()
+            .filter(|k| !non_string_keys.contains(**k))
+            .collect();
+
+        let sentinel = serde_json::Value::String("__test_sentinel__".to_string());
+        let updates: Vec<(String, serde_json::Value)> = string_keys
+            .iter()
+            .map(|k| (k.to_string(), sentinel.clone()))
+            .collect();
+        config
+            .set_param_values(&updates)
+            .expect("set_param_values should succeed");
+
+        let typed = GooseConfigSchema::from_config(&config);
+        let json = serde_json::to_value(&typed).expect("serialize schema");
+        let obj = json.as_object().expect("schema should be object");
+
+        for key in &string_keys {
+            assert!(
+                obj.get(**key).is_some_and(|v| !v.is_null()),
+                "from_config did not populate field for key '{}' — check the from_config() body",
+                key
+            );
+        }
+
+        let config_file2 = tempfile::NamedTempFile::new().unwrap();
+        let secrets_file2 = tempfile::NamedTempFile::new().unwrap();
+        let config2 =
+            Config::new_with_file_secrets(config_file2.path(), secrets_file2.path()).unwrap();
+        typed
+            .apply_to_config(&config2)
+            .expect("apply_to_config should succeed");
+
+        for key in &string_keys {
+            let val: Result<String, _> = config2.get_param(key);
+            assert!(
+                val.is_ok(),
+                "apply_to_config did not persist key '{}' — check the apply_to_config() body",
+                key
+            );
+        }
     }
 }

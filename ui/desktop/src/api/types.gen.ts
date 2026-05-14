@@ -533,9 +533,11 @@ export type GooseApp = McpAppResource & (WindowProps | null) & {
 /**
  * JSON Schema representation of Goose's config.yaml.
  *
- * All keys are optional. Unknown keys are allowed (additionalProperties: true)
- * because Goose passes undocumented provider-specific keys through as
- * environment variable overrides.
+ * All fields are optional. The standalone JSON Schema (`config.schema.json`)
+ * sets `additionalProperties: true` so config.yaml can carry undocumented
+ * provider-specific keys as env-var overrides. However, the typed API
+ * endpoints only persist fields explicitly declared on this struct — unknown
+ * keys in a `PATCH /config/typed` payload are silently dropped by serde.
  */
 export type GooseConfigSchema = {
     ANTHROPIC_HOST?: string | null;
@@ -599,6 +601,7 @@ export type GooseConfigSchema = {
     GOOSE_DEFAULT_EXTENSION_TIMEOUT?: number | null;
     GOOSE_DISABLE_KEYRING?: boolean | null;
     GOOSE_DISABLE_SESSION_NAMING?: boolean | null;
+    GOOSE_DISABLE_TOOL_CALL_SUMMARY?: boolean | null;
     GOOSE_INPUT_LIMIT?: number | null;
     GOOSE_LOCAL_ENABLE_THINKING?: boolean | null;
     GOOSE_MAX_ACTIVE_AGENTS?: number | null;
@@ -671,7 +674,11 @@ export type GooseConfigSchema = {
  *
  * Embeds all non-secret fields from [`GooseConfigSchema`] via `#[serde(flatten)]`,
  * plus provider API key fields that route to the system keyring.
- * Fields set to `null` are left unchanged — to delete a key, use `POST /config/remove`.
+ *
+ * **Sparse patch semantics:** Only send fields you want to change. Fields set to
+ * `null` (or omitted) are left unchanged — serde cannot distinguish the two cases.
+ * To delete a key, use `POST /config/remove`. Nested objects (`extensions`,
+ * `slash_commands`, `experiments`) use whole-value replacement, not deep merge.
  */
 export type GooseConfigUpdate = GooseConfigSchema & {
     ANTHROPIC_API_KEY?: string | null;
@@ -681,6 +688,8 @@ export type GooseConfigUpdate = GooseConfigSchema & {
     GOOGLE_API_KEY?: string | null;
     GROQ_API_KEY?: string | null;
     LITELLM_API_KEY?: string | null;
+    LITELLM_CUSTOM_HEADERS?: string | null;
+    NANOGPT_API_KEY?: string | null;
     OPENAI_API_KEY?: string | null;
     OPENROUTER_API_KEY?: string | null;
     SNOWFLAKE_TOKEN?: string | null;

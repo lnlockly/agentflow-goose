@@ -1583,8 +1583,8 @@
         "tags": [
           "super::routes::config_management"
         ],
-        "summary": "Update configuration values. Fields set to null are left unchanged — to delete",
-        "description": "a key, use `POST /config/remove`. Secret fields (API keys) are stored in the\nsystem keyring, not the config file.",
+        "summary": "Update configuration values via sparse patch. Only send the fields you want",
+        "description": "to change — omitted and null fields are both left unchanged (serde cannot\ndistinguish the two). To delete a key, use `POST /config/remove`.\n\nNested objects (`extensions`, `slash_commands`, `experiments`) use whole-value\nreplacement, not deep merge. Secret fields (API keys) are stored in the system\nkeyring, not the config file.\n\n**Caution:** `GET /config/typed` returns values merged from env vars, system\nconfig, and user config. Sending the full GET response back as a PATCH payload\ncan persist inherited/env values into the user config file. Only send fields\nthe user explicitly changed.",
         "operationId": "patch_typed_config",
         "requestBody": {
           "content": {
@@ -5578,7 +5578,7 @@
       },
       "GooseConfigSchema": {
         "type": "object",
-        "description": "JSON Schema representation of Goose's config.yaml.\n\nAll keys are optional. Unknown keys are allowed (additionalProperties: true)\nbecause Goose passes undocumented provider-specific keys through as\nenvironment variable overrides.",
+        "description": "JSON Schema representation of Goose's config.yaml.\n\nAll fields are optional. The standalone JSON Schema (`config.schema.json`)\nsets `additionalProperties: true` so config.yaml can carry undocumented\nprovider-specific keys as env-var overrides. However, the typed API\nendpoints only persist fields explicitly declared on this struct — unknown\nkeys in a `PATCH /config/typed` payload are silently dropped by serde.",
         "properties": {
           "ANTHROPIC_HOST": {
             "type": "string",
@@ -5839,6 +5839,10 @@
             "nullable": true
           },
           "GOOSE_DISABLE_SESSION_NAMING": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "GOOSE_DISABLE_TOOL_CALL_SUMMARY": {
             "type": "boolean",
             "nullable": true
           },
@@ -6170,6 +6174,14 @@
                 "type": "string",
                 "nullable": true
               },
+              "LITELLM_CUSTOM_HEADERS": {
+                "type": "string",
+                "nullable": true
+              },
+              "NANOGPT_API_KEY": {
+                "type": "string",
+                "nullable": true
+              },
               "OPENAI_API_KEY": {
                 "type": "string",
                 "nullable": true
@@ -6197,7 +6209,7 @@
             }
           }
         ],
-        "description": "Config update payload for `PATCH /config/typed`.\n\nEmbeds all non-secret fields from [`GooseConfigSchema`] via `#[serde(flatten)]`,\nplus provider API key fields that route to the system keyring.\nFields set to `null` are left unchanged — to delete a key, use `POST /config/remove`."
+        "description": "Config update payload for `PATCH /config/typed`.\n\nEmbeds all non-secret fields from [`GooseConfigSchema`] via `#[serde(flatten)]`,\nplus provider API key fields that route to the system keyring.\n\n**Sparse patch semantics:** Only send fields you want to change. Fields set to\n`null` (or omitted) are left unchanged — serde cannot distinguish the two cases.\nTo delete a key, use `POST /config/remove`. Nested objects (`extensions`,\n`slash_commands`, `experiments`) use whole-value replacement, not deep merge."
       },
       "GooseMode": {
         "type": "string",
