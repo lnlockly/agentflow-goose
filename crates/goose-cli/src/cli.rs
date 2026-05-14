@@ -359,6 +359,13 @@ pub struct RunBehavior {
     )]
     pub resume: bool,
 
+    /// Print generation statistics after completion
+    #[arg(
+        long = "stats",
+        help = "Print generation statistics after the run completes"
+    )]
+    pub stats: bool,
+
     /// Scheduled job ID (used internally for scheduled executions)
     #[arg(
         long = "scheduled-job-id",
@@ -1376,6 +1383,7 @@ async fn handle_interactive_session(
         quiet: false,
         output_format: "text".to_string(),
         container: session_opts.container.map(Container::new),
+        stats: false,
     })
     .await;
 
@@ -1588,6 +1596,7 @@ async fn handle_run_command(
         quiet: output_opts.quiet,
         output_format: output_opts.output_format,
         container: session_opts.container.map(Container::new),
+        stats: run_behavior.stats,
     })
     .await;
 
@@ -1871,6 +1880,7 @@ async fn handle_default_session() -> Result<()> {
         quiet: false,
         output_format: "text".to_string(),
         container: None,
+        stats: false,
     })
     .await;
     session.interactive(None).await

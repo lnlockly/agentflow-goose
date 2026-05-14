@@ -43,6 +43,8 @@ pub struct ModelSettings {
     pub backend_id: Option<String>,
     pub context_size: Option<u32>,
     pub max_output_tokens: Option<usize>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub draft_model: Option<String>,
     #[serde(default)]
     pub sampling: SamplingConfig,
     #[serde(default = "default_repeat_penalty")]
@@ -100,6 +102,7 @@ impl Default for ModelSettings {
             backend_id: None,
             context_size: None,
             max_output_tokens: None,
+            draft_model: None,
             sampling: SamplingConfig::default(),
             repeat_penalty: 1.0,
             repeat_last_n: 64,
