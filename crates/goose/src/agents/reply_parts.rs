@@ -264,6 +264,11 @@ impl Agent {
             .map(|m| m.agent_visible_content())
             .collect();
 
+        // Replace duplicate tool-result text blocks with short pointers
+        // (P1 in BRAINROT.md). The session DB and on-screen view keep the
+        // full content; only the LLM payload is deduped.
+        let filtered_messages = crate::conversation::dedup::dedup_tool_results(&filtered_messages);
+
         // Convert tool messages to text if toolshim is enabled
         let messages_for_provider = if config.toolshim {
             convert_tool_messages_to_text(&filtered_messages)
