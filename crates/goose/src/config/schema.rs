@@ -10,10 +10,21 @@ use crate::config::goose_mode::GooseMode;
 use crate::config::providers::ProviderEntry;
 use crate::slash_commands::SlashCommandMapping;
 
+fn deserialize_string_or_number<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let opt: Option<serde_json::Value> = Option::deserialize(deserializer)?;
+    Ok(opt.map(|v| match v {
+        serde_json::Value::String(s) => s,
+        other => other.to_string(),
+    }))
+}
+
 /// JSON Schema representation of Goose's config.yaml.
 ///
 /// All fields are optional. The standalone JSON Schema (`config.schema.json`)
-/// sets `additionalProperties: true` so config.yaml can carry undocumented
+/// allows additional properties (no `additionalProperties` constraint) so config.yaml can carry undocumented
 /// provider-specific keys as env-var overrides. However, the typed API
 /// endpoints only persist fields explicitly declared on this struct — unknown
 /// keys in a `PATCH /config/typed` payload are silently dropped by serde.
@@ -198,13 +209,29 @@ pub struct GooseConfigSchema {
     pub ollama_stream_usage: Option<bool>,
     #[serde(rename = "DATABRICKS_HOST")]
     pub databricks_host: Option<String>,
-    #[serde(rename = "DATABRICKS_MAX_RETRIES")]
+    #[serde(
+        rename = "DATABRICKS_MAX_RETRIES",
+        default,
+        deserialize_with = "deserialize_string_or_number"
+    )]
     pub databricks_max_retries: Option<String>,
-    #[serde(rename = "DATABRICKS_INITIAL_RETRY_INTERVAL_MS")]
+    #[serde(
+        rename = "DATABRICKS_INITIAL_RETRY_INTERVAL_MS",
+        default,
+        deserialize_with = "deserialize_string_or_number"
+    )]
     pub databricks_initial_retry_interval_ms: Option<String>,
-    #[serde(rename = "DATABRICKS_BACKOFF_MULTIPLIER")]
+    #[serde(
+        rename = "DATABRICKS_BACKOFF_MULTIPLIER",
+        default,
+        deserialize_with = "deserialize_string_or_number"
+    )]
     pub databricks_backoff_multiplier: Option<String>,
-    #[serde(rename = "DATABRICKS_MAX_RETRY_INTERVAL_MS")]
+    #[serde(
+        rename = "DATABRICKS_MAX_RETRY_INTERVAL_MS",
+        default,
+        deserialize_with = "deserialize_string_or_number"
+    )]
     pub databricks_max_retry_interval_ms: Option<String>,
     #[serde(rename = "AZURE_OPENAI_ENDPOINT")]
     pub azure_openai_endpoint: Option<String>,
@@ -218,13 +245,29 @@ pub struct GooseConfigSchema {
     pub gcp_project_id: Option<String>,
     #[serde(rename = "GCP_LOCATION")]
     pub gcp_location: Option<String>,
-    #[serde(rename = "GCP_MAX_RETRIES")]
+    #[serde(
+        rename = "GCP_MAX_RETRIES",
+        default,
+        deserialize_with = "deserialize_string_or_number"
+    )]
     pub gcp_max_retries: Option<String>,
-    #[serde(rename = "GCP_INITIAL_RETRY_INTERVAL_MS")]
+    #[serde(
+        rename = "GCP_INITIAL_RETRY_INTERVAL_MS",
+        default,
+        deserialize_with = "deserialize_string_or_number"
+    )]
     pub gcp_initial_retry_interval_ms: Option<String>,
-    #[serde(rename = "GCP_BACKOFF_MULTIPLIER")]
+    #[serde(
+        rename = "GCP_BACKOFF_MULTIPLIER",
+        default,
+        deserialize_with = "deserialize_string_or_number"
+    )]
     pub gcp_backoff_multiplier: Option<String>,
-    #[serde(rename = "GCP_MAX_RETRY_INTERVAL_MS")]
+    #[serde(
+        rename = "GCP_MAX_RETRY_INTERVAL_MS",
+        default,
+        deserialize_with = "deserialize_string_or_number"
+    )]
     pub gcp_max_retry_interval_ms: Option<String>,
     #[serde(rename = "AWS_REGION")]
     pub aws_region: Option<String>,
@@ -601,7 +644,15 @@ impl GooseConfigSchema {
             otel_exporter_otlp_endpoint: config.get_param("otel_exporter_otlp_endpoint").ok(),
             otel_exporter_otlp_timeout: config.get_param("otel_exporter_otlp_timeout").ok(),
             tunnel_auto_start: config.get_param("tunnel_auto_start").ok(),
-            extensions: config.get_param("extensions").ok(),
+            extensions: config
+                .get_param::<HashMap<String, ExtensionEntry>>("extensions")
+                .ok()
+                .map(|mut exts| {
+                    exts.retain(|_key, entry| {
+                        !crate::agents::extension_manager::is_hidden_extension(&entry.config.name())
+                    });
+                    exts
+                }),
             slash_commands: config.get_param("slash_commands").ok(),
             experiments: config.get_param("experiments").ok(),
             providers: config.get_param("providers").ok(),
@@ -614,10 +665,8 @@ impl GooseConfigSchema {
         macro_rules! push_if_some {
             ($field:expr, $key:expr) => {
                 if let Some(ref v) = $field {
-                    match serde_json::to_value(v) {
-                        Ok(json) => updates.push(($key.to_string(), json)),
-                        Err(e) => tracing::warn!("Failed to serialize config key {}: {}", $key, e),
-                    }
+                    let json = serde_json::to_value(v)?;
+                    updates.push(($key.to_string(), json));
                 }
             };
         }
@@ -643,7 +692,7 @@ impl GooseConfigSchema {
             self.goose_disable_session_naming,
             "GOOSE_DISABLE_SESSION_NAMING"
         );
-        push_if_some!(self.goose_disable_keyring, "GOOSE_DISABLE_KEYRING");
+        // GOOSE_DISABLE_KEYRING is read-only — writes would downgrade secret storage.
         push_if_some!(self.goose_telemetry_enabled, "GOOSE_TELEMETRY_ENABLED");
         push_if_some!(
             self.goose_default_extension_timeout,
@@ -822,8 +871,17 @@ impl GooseConfigSchema {
             "otel_exporter_otlp_timeout"
         );
         push_if_some!(self.tunnel_auto_start, "tunnel_auto_start");
-        push_if_some!(self.active_provider, "active_provider");
-        push_if_some!(self.extensions, "extensions");
+        if self.goose_provider.is_none() {
+            push_if_some!(self.active_provider, "active_provider");
+        }
+        if let Some(ref exts) = self.extensions {
+            let mut filtered = exts.clone();
+            filtered.retain(|_key, entry| {
+                !crate::agents::extension_manager::is_hidden_extension(&entry.config.name())
+            });
+            let json = serde_json::to_value(&filtered)?;
+            updates.push(("extensions".to_string(), json));
+        }
         push_if_some!(self.slash_commands, "slash_commands");
         push_if_some!(self.experiments, "experiments");
         push_if_some!(self.providers, "providers");
@@ -903,10 +961,8 @@ impl GooseConfigUpdate {
         macro_rules! push_secret {
             ($field:expr, $key:expr) => {
                 if let Some(ref v) = $field {
-                    match serde_json::to_value(v) {
-                        Ok(json) => secret_updates.push(($key.to_string(), json)),
-                        Err(e) => tracing::warn!("Failed to serialize secret key {}: {}", $key, e),
-                    }
+                    let json = serde_json::to_value(v)?;
+                    secret_updates.push(($key.to_string(), json));
                 }
             };
         }
@@ -1056,7 +1112,8 @@ mod tests {
         assert_eq!(typed2.goose_provider, typed.goose_provider);
         assert_eq!(typed2.goose_max_tokens, typed.goose_max_tokens);
         assert_eq!(typed2.goose_debug, typed.goose_debug);
-        assert_eq!(typed2.goose_disable_keyring, typed.goose_disable_keyring);
+        // GOOSE_DISABLE_KEYRING is read-only — apply_to_config skips it
+        assert_eq!(typed2.goose_disable_keyring, None);
         assert_eq!(typed2.goose_mode, typed.goose_mode);
         assert_eq!(typed2.goose_search_paths, typed.goose_search_paths);
         assert_eq!(typed2.goose_context_limit, typed.goose_context_limit);
@@ -1069,68 +1126,24 @@ mod tests {
         let config =
             Config::new_with_file_secrets(config_file.path(), secrets_file.path()).unwrap();
 
-        // Non-string keys need type-appropriate values; get_param fails if
-        // the stored value can't deserialize to the field's Rust type.
-        // Test string-typed keys exhaustively, and spot-check typed keys
-        // in the roundtrip test above.
-        let non_string_keys: std::collections::HashSet<&str> = [
-            "GOOSE_MODE",
-            "GOOSE_MAX_TOKENS",
-            "GOOSE_CONTEXT_LIMIT",
-            "GOOSE_INPUT_LIMIT",
-            "GOOSE_MAX_TURNS",
-            "GOOSE_MAX_ACTIVE_AGENTS",
-            "GOOSE_AUTO_COMPACT_THRESHOLD",
-            "GOOSE_TOOL_PAIR_SUMMARIZATION",
-            "GOOSE_TOOL_CALL_CUTOFF",
-            "GOOSE_STREAM_TIMEOUT",
-            "GOOSE_SEARCH_PATHS",
-            "GOOSE_DISABLE_SESSION_NAMING",
-            "GOOSE_DISABLE_KEYRING",
-            "GOOSE_TELEMETRY_ENABLED",
-            "GOOSE_DEFAULT_EXTENSION_TIMEOUT",
-            "GOOSE_PROMPT_EDITOR_ALWAYS",
-            "GOOSE_DEBUG",
-            "GOOSE_SHOW_FULL_OUTPUT",
-            "GOOSE_DISABLE_TOOL_CALL_SUMMARY",
-            "GOOSE_LOCAL_ENABLE_THINKING",
-            "GOOSE_DATABRICKS_CLIENT_REQUEST_ID",
-            "RANDOM_THINKING_MESSAGES",
-            "GOOSE_SUBAGENT_MAX_TURNS",
-            "GOOSE_MAX_BACKGROUND_TASKS",
-            "GOOSE_RECIPE_RETRY_TIMEOUT_SECONDS",
-            "GOOSE_RECIPE_ON_FAILURE_TIMEOUT_SECONDS",
-            "GOOSE_CLI_MIN_PRIORITY",
-            "GOOSE_CLI_SHOW_COST",
-            "GOOSE_CLI_SHOW_THINKING",
-            "CLAUDE_THINKING_BUDGET",
-            "ANTHROPIC_THINKING_BUDGET",
-            "GEMINI25_THINKING_BUDGET",
-            "SECURITY_PROMPT_ENABLED",
-            "SECURITY_PROMPT_THRESHOLD",
-            "SECURITY_PROMPT_CLASSIFIER_ENABLED",
-            "SECURITY_COMMAND_CLASSIFIER_ENABLED",
-            "OPENAI_TIMEOUT",
-            "OLLAMA_TIMEOUT",
-            "OLLAMA_STREAM_TIMEOUT",
-            "OLLAMA_STREAM_USAGE",
-            "BEDROCK_MAX_RETRIES",
-            "BEDROCK_INITIAL_RETRY_INTERVAL_MS",
-            "BEDROCK_BACKOFF_MULTIPLIER",
-            "BEDROCK_MAX_RETRY_INTERVAL_MS",
-            "BEDROCK_ENABLE_CACHING",
-            "LITELLM_TIMEOUT",
-            "otel_exporter_otlp_timeout",
-            "tunnel_auto_start",
-            "CONTEXT_FILE_NAMES",
-        ]
-        .iter()
-        .copied()
-        .collect();
+        let schema = schema_for!(GooseConfigSchema);
+        let properties = schema
+            .as_object()
+            .unwrap()
+            .get("properties")
+            .and_then(|p| p.as_object())
+            .unwrap();
 
-        let string_keys: Vec<&&str> = GooseConfigSchema::ALL_KEYS
+        let is_string_type = |prop: &serde_json::Value| -> bool {
+            prop.get("type")
+                .and_then(|t| t.as_array())
+                .is_some_and(|arr| arr.iter().any(|t| t == "string"))
+        };
+
+        let string_keys: Vec<&str> = GooseConfigSchema::ALL_KEYS
             .iter()
-            .filter(|k| !non_string_keys.contains(**k))
+            .filter(|k| properties.get(**k).is_some_and(|p| is_string_type(p)))
+            .copied()
             .collect();
 
         let sentinel = serde_json::Value::String("__test_sentinel__".to_string());
@@ -1148,7 +1161,7 @@ mod tests {
 
         for key in &string_keys {
             assert!(
-                obj.get(**key).is_some_and(|v| !v.is_null()),
+                obj.get(*key).is_some_and(|v| !v.is_null()),
                 "from_config did not populate field for key '{}' — check the from_config() body",
                 key
             );
@@ -1168,12 +1181,12 @@ mod tests {
             ["GOOSE_PROVIDER", "GOOSE_MODEL"].iter().copied().collect();
 
         for key in &string_keys {
-            if provider_keys.contains(**key) {
+            if provider_keys.contains(*key) {
                 let typed2 = GooseConfigSchema::from_config(&config2);
                 let json2 = serde_json::to_value(&typed2).expect("serialize schema");
                 let obj2 = json2.as_object().expect("schema should be object");
                 assert!(
-                    obj2.get(**key).is_some_and(|v| !v.is_null()),
+                    obj2.get(*key).is_some_and(|v| !v.is_null()),
                     "apply_to_config did not persist key '{}' — check the apply_to_config() body",
                     key
                 );

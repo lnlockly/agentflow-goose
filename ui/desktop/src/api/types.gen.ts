@@ -534,7 +534,7 @@ export type GooseApp = McpAppResource & (WindowProps | null) & {
  * JSON Schema representation of Goose's config.yaml.
  *
  * All fields are optional. The standalone JSON Schema (`config.schema.json`)
- * sets `additionalProperties: true` so config.yaml can carry undocumented
+ * allows additional properties (no `additionalProperties` constraint) so config.yaml can carry undocumented
  * provider-specific keys as env-var overrides. However, the typed API
  * endpoints only persist fields explicitly declared on this struct — unknown
  * keys in a `PATCH /config/typed` payload are silently dropped by serde.

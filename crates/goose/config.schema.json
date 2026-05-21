@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "GooseConfigSchema",
-  "description": "JSON Schema representation of Goose's config.yaml.\n\nAll fields are optional. The standalone JSON Schema (`config.schema.json`)\nsets `additionalProperties: true` so config.yaml can carry undocumented\nprovider-specific keys as env-var overrides. However, the typed API\nendpoints only persist fields explicitly declared on this struct — unknown\nkeys in a `PATCH /config/typed` payload are silently dropped by serde.",
+  "description": "JSON Schema representation of Goose's config.yaml.\n\nAll fields are optional. The standalone JSON Schema (`config.schema.json`)\nallows additional properties (no `additionalProperties` constraint) so config.yaml can carry undocumented\nprovider-specific keys as env-var overrides. However, the typed API\nendpoints only persist fields explicitly declared on this struct — unknown\nkeys in a `PATCH /config/typed` payload are silently dropped by serde.",
   "type": "object",
   "properties": {
     "GOOSE_PROVIDER": {
@@ -545,25 +545,29 @@
       "type": [
         "string",
         "null"
-      ]
+      ],
+      "default": null
     },
     "DATABRICKS_INITIAL_RETRY_INTERVAL_MS": {
       "type": [
         "string",
         "null"
-      ]
+      ],
+      "default": null
     },
     "DATABRICKS_BACKOFF_MULTIPLIER": {
       "type": [
         "string",
         "null"
-      ]
+      ],
+      "default": null
     },
     "DATABRICKS_MAX_RETRY_INTERVAL_MS": {
       "type": [
         "string",
         "null"
-      ]
+      ],
+      "default": null
     },
     "AZURE_OPENAI_ENDPOINT": {
       "type": [
@@ -605,25 +609,29 @@
       "type": [
         "string",
         "null"
-      ]
+      ],
+      "default": null
     },
     "GCP_INITIAL_RETRY_INTERVAL_MS": {
       "type": [
         "string",
         "null"
-      ]
+      ],
+      "default": null
     },
     "GCP_BACKOFF_MULTIPLIER": {
       "type": [
         "string",
         "null"
-      ]
+      ],
+      "default": null
     },
     "GCP_MAX_RETRY_INTERVAL_MS": {
       "type": [
         "string",
         "null"
-      ]
+      ],
+      "default": null
     },
     "AWS_REGION": {
       "type": [

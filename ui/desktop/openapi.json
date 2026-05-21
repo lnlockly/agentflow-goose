@@ -5578,7 +5578,7 @@
       },
       "GooseConfigSchema": {
         "type": "object",
-        "description": "JSON Schema representation of Goose's config.yaml.\n\nAll fields are optional. The standalone JSON Schema (`config.schema.json`)\nsets `additionalProperties: true` so config.yaml can carry undocumented\nprovider-specific keys as env-var overrides. However, the typed API\nendpoints only persist fields explicitly declared on this struct — unknown\nkeys in a `PATCH /config/typed` payload are silently dropped by serde.",
+        "description": "JSON Schema representation of Goose's config.yaml.\n\nAll fields are optional. The standalone JSON Schema (`config.schema.json`)\nallows additional properties (no `additionalProperties` constraint) so config.yaml can carry undocumented\nprovider-specific keys as env-var overrides. However, the typed API\nendpoints only persist fields explicitly declared on this struct — unknown\nkeys in a `PATCH /config/typed` payload are silently dropped by serde.",
         "properties": {
           "ANTHROPIC_HOST": {
             "type": "string",
