@@ -1,18 +1,24 @@
 from __future__ import annotations
 
+import json
 import os
 import shlex
+import uuid
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Any
 
-from harbor.agents.installed.base import with_prompt_template
+from harbor.agents.installed.base import NonZeroAgentExitCodeError, with_prompt_template
 from harbor.agents.installed.goose import Goose
 from harbor.environments.base import BaseEnvironment
 from harbor.models.agent.context import AgentContext
+from harbor.models.trajectories import FinalMetrics, Trajectory
 
 CONTAINER_GOOSE_PATH_ROOT = "/installed-agent/goose-profile"
 CONTAINER_RECIPE_PATH = "/installed-agent/harbor-recipe.yaml"
 CONTAINER_CA_BUNDLE_PATH = "/installed-agent/ca-certificates.crt"
+
+FATAL_GOOSE_NOTIFICATIONS = ("creditsExhausted",)
 
 
 class GooseBinaryAgent(Goose):
@@ -229,3 +235,133 @@ class GooseBinaryAgent(Goose):
             ),
             env=env,
         )
+
+        self._raise_on_fatal_goose_notification()
+
+    def _raise_on_fatal_goose_notification(self) -> None:
+        log_path = self.logs_dir / "goose.txt"
+        if not log_path.is_file():
+            return
+        log_text = log_path.read_text(errors="replace")
+        for notification in FATAL_GOOSE_NOTIFICATIONS:
+            if f'"notificationType":"{notification}"' in log_text:
+                raise NonZeroAgentExitCodeError(
+                    f"Goose exited without running the task: {notification}. "
+                    f"See {log_path} for details."
+                )
+
+    @staticmethod
+    def _extract_complete_event_tokens(
+        log_text: str,
+    ) -> tuple[int | None, int | None, int | None]:
+        """Extract (total_tokens, input_tokens, output_tokens) from the
+        final ``complete`` stream-json event.
+
+        Goose emits one ``{"type":"complete", ...}`` event at the end of a
+        run carrying the aggregate token counts for the session.
+        """
+        total = inp = out = None
+        for line in log_text.strip().split("\n"):
+            line = line.strip()
+            if not line or '"complete"' not in line:
+                continue
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if event.get("type") != "complete":
+                continue
+            total = event.get("total_tokens")
+            inp = event.get("input_tokens")
+            out = event.get("output_tokens")
+        return total, inp, out
+
+    def _compute_cost_from_pricing(
+        self,
+        prompt_tokens: int | None,
+        completion_tokens: int | None,
+    ) -> float | None:
+        """Compute total cost in USD from token counts via LiteLLM's pricing
+        table. Returns None when the model is missing from the table —
+        callers should leave ``cost_usd`` unset rather than report $0.
+        """
+        if not self.model_name or not (prompt_tokens or completion_tokens):
+            return None
+
+        try:
+            import litellm
+        except ImportError:
+            self.logger.warning(
+                "litellm not available; leaving goose cost_usd as None"
+            )
+            return None
+
+        pricing: dict[str, Any] | None = None
+        for key in (self.model_name, self.model_name.split("/", 1)[-1]):
+            entry = litellm.model_cost.get(key)
+            if entry:
+                pricing = entry
+                break
+
+        if pricing is None:
+            self.logger.warning(
+                "No LiteLLM pricing entry for model '%s'; leaving goose "
+                "cost_usd as None",
+                self.model_name,
+            )
+            return None
+
+        input_rate = pricing.get("input_cost_per_token") or 0.0
+        output_rate = pricing.get("output_cost_per_token") or 0.0
+
+        return (prompt_tokens or 0) * input_rate + (completion_tokens or 0) * output_rate
+
+    def populate_context_post_run(self, context: AgentContext) -> None:
+        txt_path = self.logs_dir / "goose.txt"
+        if not txt_path.exists():
+            return
+
+        log_text = txt_path.read_text()
+
+        total_tokens, input_tokens, output_tokens = self._extract_complete_event_tokens(
+            log_text
+        )
+
+        if input_tokens is not None:
+            context.n_input_tokens = input_tokens
+        elif total_tokens is not None:
+            context.n_input_tokens = total_tokens
+
+        if output_tokens is not None:
+            context.n_output_tokens = output_tokens
+
+        cost_usd = self._compute_cost_from_pricing(input_tokens, output_tokens)
+        if cost_usd is not None:
+            context.cost_usd = cost_usd
+
+        trajectory: Trajectory | None = None
+        session_id = str(uuid.uuid4())
+        try:
+            trajectory = self._convert_goose_stream_json_to_atif(log_text, session_id)
+        except Exception:
+            pass
+
+        if trajectory is None:
+            try:
+                trajectory = self._convert_goose_to_atif(log_text, session_id)
+            except Exception as e:
+                self.logger.debug(f"Error converting goose log to ATIF: {e}")
+
+        if trajectory:
+            trajectory.final_metrics = FinalMetrics(
+                total_steps=len(trajectory.steps),
+                total_prompt_tokens=input_tokens,
+                total_completion_tokens=output_tokens,
+                total_cost_usd=cost_usd,
+                extra={"total_tokens": total_tokens} if total_tokens else None,
+            )
+            try:
+                atif_path = self.logs_dir / "trajectory.json"
+                atif_path.write_text(json.dumps(trajectory.to_json_dict(), indent=2))
+            except Exception as e:
+                self.logger.debug(f"Error writing ATIF trajectory: {e}")

@@ -38,6 +38,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--trials", type=int, default=1)
     parser.add_argument("--concurrency", type=int, default=1)
     parser.add_argument("--max-turns", type=int)
+    parser.add_argument(
+        "--timeout-multiplier",
+        type=float,
+        default=1.0,
+        help=(
+            "Scale every per-task timeout (agent, verifier, setup, build). "
+            "Useful when rerunning trials that hit AgentTimeoutError."
+        ),
+    )
     parser.add_argument("--jobs-dir", type=Path, default=harbor_dir() / ".runs" / "jobs")
     parser.add_argument(
         "--config-dir", type=Path, default=harbor_dir() / ".runs" / "configs"
@@ -143,7 +152,10 @@ def build_harbor_config(args: argparse.Namespace) -> dict[str, Any]:
         else default_job_name(args.model, args.dataset)
     )
 
-    return {
+    if args.timeout_multiplier <= 0:
+        raise ValueError("--timeout-multiplier must be positive")
+
+    config: dict[str, Any] = {
         "job_name": job_name,
         "jobs_dir": str(args.jobs_dir.expanduser()),
         "n_attempts": args.trials,
@@ -164,6 +176,11 @@ def build_harbor_config(args: argparse.Namespace) -> dict[str, Any]:
         ],
         "datasets": [dataset_config(args.dataset, args.tasks)],
     }
+
+    if args.timeout_multiplier != 1.0:
+        config["timeout_multiplier"] = args.timeout_multiplier
+
+    return config
 
 
 def run_harbor(command: list[str]) -> int:
