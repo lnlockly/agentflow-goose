@@ -72,11 +72,16 @@ def pythonpath_with_harbor() -> str:
 
 def dataset_config(dataset_ref: str, tasks: list[str]) -> dict[str, Any]:
     name, sep, ref = dataset_ref.rpartition("@")
-    dataset: dict[str, Any] = {"name": name if sep else dataset_ref}
+    dataset_name = name if sep else dataset_ref
+    dataset: dict[str, Any] = {"name": dataset_name}
     if sep:
         dataset["ref" if "/" in name else "version"] = ref
     if tasks:
-        dataset["task_names"] = tasks
+        prefix = f"{dataset_name}/"
+        dataset["task_names"] = [
+            task.removeprefix(prefix) if task.startswith(prefix) else task
+            for task in tasks
+        ]
     return dataset
 
 
