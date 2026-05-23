@@ -33,6 +33,8 @@ import yaml
 from harbor.agents.installed.base import NonZeroAgentExitCodeError, with_prompt_template
 from harbor.agents.installed.goose import Goose
 from harbor.environments.base import BaseEnvironment
+from dataclasses import dataclass
+
 from harbor.models.agent.context import AgentContext
 from harbor.models.job.result import JobResult
 from harbor.models.trajectories import FinalMetrics, Trajectory
@@ -559,8 +561,42 @@ def cmd_run(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------------------
 
 
-def load_job(job_dir: Path) -> JobResult:
-    return JobResult.model_validate_json((job_dir / "result.json").read_text())
+@dataclass
+class LoadedJob:
+    """A job's summary plus all per-trial results.
+
+    Harbor 0.6.4 puts the job summary in ``<job_dir>/result.json`` and
+    each trial's result in ``<job_dir>/<trial_name>/result.json``.
+    """
+
+    summary: JobResult
+    results: list[TrialResult]
+    job_dir: Path
+
+    @property
+    def job_name(self) -> str:
+        return self.summary.job_name
+
+    @property
+    def started_at(self):
+        return self.summary.started_at
+
+    @property
+    def config(self):
+        return self.summary.config
+
+
+def load_job(job_dir: Path) -> LoadedJob:
+    summary = JobResult.model_validate_json((job_dir / "result.json").read_text())
+    results: list[TrialResult] = []
+    for child in sorted(job_dir.iterdir()):
+        if not child.is_dir():
+            continue
+        trial_result = child / "result.json"
+        if not trial_result.is_file():
+            continue
+        results.append(TrialResult.model_validate_json(trial_result.read_text()))
+    return LoadedJob(summary=summary, results=results, job_dir=job_dir)
 
 
 def trial_status(trial: TrialResult) -> str:
@@ -583,14 +619,12 @@ def trial_status(trial: TrialResult) -> str:
     return "fail"
 
 
-def job_duration(job: JobResult) -> float | None:
-    if job.duration_seconds:
-        return job.duration_seconds
+def job_duration(job: LoadedJob) -> float | None:
     durations = [t.duration_seconds for t in job.results if t.duration_seconds]
     return max(durations) if durations else None
 
 
-def job_model(job: JobResult) -> str:
+def job_model(job: LoadedJob) -> str:
     if job.config and job.config.agents:
         model = job.config.agents[0].model_name
         if model:
