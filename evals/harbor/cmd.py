@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["harbor==0.6.4", "PyYAML>=6.0"]
+# dependencies = ["harbor==0.13.0", "PyYAML>=6.0"]
 # ///
 """Harbor benchmark runner and reporter for Goose.
 
