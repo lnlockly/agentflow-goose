@@ -28,16 +28,36 @@ def load_job(job_dir: Path) -> dict[str, Any]:
 
 
 def trial_records(job: dict[str, Any]) -> list[dict[str, Any]]:
-    return job.get("trial_results", []) or []
+    return job.get("results") or job.get("trial_results") or []
+
+
+def trial_reward(trial: dict[str, Any]) -> float | None:
+    reward = trial.get("reward")
+    if reward is not None:
+        return reward
+    result = trial.get("result")
+    if isinstance(result, dict):
+        return result.get("score")
+    return None
+
+
+def trial_error_class(trial: dict[str, Any]) -> str:
+    error_class = trial.get("error_class")
+    if error_class and error_class != "None":
+        return error_class
+    status = trial.get("trial_status")
+    if status and status not in {"completed", "ok", "success"}:
+        return status
+    return ""
 
 
 def trial_status(trial: dict[str, Any]) -> str:
-    error_class = trial.get("error_class") or "None"
-    reward = trial.get("reward")
-    if error_class != "None":
-        if "Timeout" in error_class:
+    error_class = trial_error_class(trial)
+    if error_class:
+        if "Timeout" in error_class or "timeout" in error_class:
             return "timeout"
         return "error"
+    reward = trial_reward(trial)
     if reward is None:
         return "no-reward"
     if reward >= 1.0:
@@ -74,11 +94,58 @@ def fmt_cost(usd: float | None) -> str:
 
 
 def task_name(trial: dict[str, Any]) -> str:
-    task_id = trial.get("task_id") or {}
-    name = task_id.get("name")
-    if name:
-        return name
-    return trial.get("trial_name", "?").split(".")[0]
+    task_id = trial.get("task_id")
+    if isinstance(task_id, dict):
+        name = task_id.get("name")
+        if name:
+            return name
+    elif isinstance(task_id, str) and task_id:
+        return task_id.split("/", 1)[-1]
+    return trial.get("trial_name", "?").rsplit(".", 1)[0]
+
+
+def trial_duration(trial: dict[str, Any]) -> float | None:
+    return (
+        trial.get("duration_seconds")
+        or trial.get("duration_sec")
+        or trial.get("total_duration_seconds")
+    )
+
+
+def job_duration(job: dict[str, Any]) -> float | None:
+    if job.get("duration_seconds") or job.get("duration_sec"):
+        return job.get("duration_seconds") or job.get("duration_sec")
+    # Old schema: sum trial durations (approximate; ignores concurrency)
+    trials = trial_records(job)
+    durations = [trial_duration(t) for t in trials]
+    valid = [d for d in durations if d]
+    return max(valid) if valid else None
+
+
+def trial_metric(trial: dict[str, Any], key: str) -> Any:
+    if key in trial:
+        return trial[key]
+    metrics = trial.get("metrics")
+    if isinstance(metrics, dict):
+        return metrics.get(key)
+    return None
+
+
+def job_model(job: dict[str, Any]) -> str:
+    config_agents = (job.get("config") or {}).get("agents") or []
+    if config_agents:
+        model = config_agents[0].get("model_name")
+        if model:
+            return model
+    trials = trial_records(job)
+    for trial in trials:
+        agent = trial.get("agent")
+        if isinstance(agent, dict) and agent.get("model"):
+            return agent["model"]
+        agent_info = trial.get("agent_info")
+        if isinstance(agent_info, dict) and agent_info.get("model_name"):
+            return agent_info["model_name"]
+    return "?"
 
 
 # ---------------------------------------------------------------------------
@@ -106,8 +173,7 @@ def cmd_list(args: argparse.Namespace) -> int:
             counts[trial_status(trial)] += 1
         total = len(trials)
         pass_rate = f"{100 * counts['pass'] / total:.1f}%" if total else "-"
-        agent = (job.get("config") or {}).get("agents", [{}])[0]
-        model = agent.get("model_name", "?")
+        model = job_model(job)
         rows.append(
             (
                 child.name,
@@ -118,7 +184,7 @@ def cmd_list(args: argparse.Namespace) -> int:
                 counts["timeout"],
                 counts["error"],
                 pass_rate,
-                fmt_duration(job.get("duration_sec")),
+                fmt_duration(job_duration(job)),
             )
         )
 
@@ -149,11 +215,10 @@ def cmd_show(args: argparse.Namespace) -> int:
         counts[trial_status(trial)] += 1
     total = len(trials)
 
-    agent = (job.get("config") or {}).get("agents", [{}])[0]
     print(f"Job:          {job.get('job_name')}")
-    print(f"Model:        {agent.get('model_name')}")
+    print(f"Model:        {job_model(job)}")
     print(f"Started:      {job.get('started_at')}")
-    print(f"Wall clock:   {fmt_duration(job.get('duration_sec'))}")
+    print(f"Wall clock:   {fmt_duration(job_duration(job))}")
     print(f"Trials:       {total}")
     print(
         f"  pass={counts['pass']}  partial={counts['partial']}  fail={counts['fail']}  "
@@ -161,9 +226,9 @@ def cmd_show(args: argparse.Namespace) -> int:
     )
     if total:
         print(f"Pass rate:    {100 * counts['pass'] / total:.1f}%")
-    total_input = sum((t.get("n_input_tokens") or 0) for t in trials)
-    total_output = sum((t.get("n_output_tokens") or 0) for t in trials)
-    total_cost = sum((t.get("cost_usd") or 0.0) for t in trials)
+    total_input = sum((trial_metric(t, 'n_input_tokens') or 0) for t in trials)
+    total_output = sum((trial_metric(t, 'n_output_tokens') or 0) for t in trials)
+    total_cost = sum((trial_metric(t, 'cost_usd') or 0.0) for t in trials)
     print(f"Tokens:       in={fmt_tokens(total_input)}  out={fmt_tokens(total_output)}")
     print(f"Cost:         {fmt_cost(total_cost)}")
     print()
@@ -179,21 +244,19 @@ def cmd_show(args: argparse.Namespace) -> int:
         if filter_status and status != filter_status:
             continue
         name = task_name(trial)
-        reward = trial.get("reward")
+        reward = trial_reward(trial)
         reward_str = f"{reward:.2f}" if reward is not None else "-"
-        err = trial.get("error_class") or ""
-        if err == "None":
-            err = ""
+        err = trial_error_class(trial)
         msg = (trial.get("error_message") or "").splitlines()[0] if trial.get("error_message") else ""
         err_str = f"{err}: {msg}" if err and msg else err
         if len(err_str) > 50:
             err_str = err_str[:47] + "..."
         print(
             f"{name:<45} {status:<10} {reward_str:>7} "
-            f"{fmt_duration(trial.get('duration_sec')):>7} "
-            f"{fmt_tokens(trial.get('n_input_tokens')):>7} "
-            f"{fmt_tokens(trial.get('n_output_tokens')):>7} "
-            f"{fmt_cost(trial.get('cost_usd')):>7}  {err_str}"
+            f"{fmt_duration(trial_duration(trial)):>7} "
+            f"{fmt_tokens(trial_metric(trial, 'n_input_tokens')):>7} "
+            f"{fmt_tokens(trial_metric(trial, 'n_output_tokens')):>7} "
+            f"{fmt_cost(trial_metric(trial, 'cost_usd')):>7}  {err_str}"
         )
     return 0
 
@@ -222,11 +285,8 @@ def cmd_compare(args: argparse.Namespace) -> int:
     ca, cb = counts(job_a), counts(job_b)
     na, nb = len(trial_records(job_a)), len(trial_records(job_b))
 
-    agent_a = (job_a.get("config") or {}).get("agents", [{}])[0]
-    agent_b = (job_b.get("config") or {}).get("agents", [{}])[0]
-
-    print(f"A: {args.job_a}  ({agent_a.get('model_name')})")
-    print(f"B: {args.job_b}  ({agent_b.get('model_name')})")
+    print(f"A: {args.job_a}  ({job_model(job_a)})")
+    print(f"B: {args.job_b}  ({job_model(job_b)})")
     print()
     print(f"{'metric':<18} {'A':>10} {'B':>10}  {'diff':>8}")
     print("-" * 50)
@@ -244,16 +304,16 @@ def cmd_compare(args: argparse.Namespace) -> int:
     if na and nb:
         row("pass rate %", 100 * ca["pass"] / na, 100 * cb["pass"] / nb, "{:.1f}")
 
-    total_in_a = sum((t.get("n_input_tokens") or 0) for t in trial_records(job_a))
-    total_in_b = sum((t.get("n_input_tokens") or 0) for t in trial_records(job_b))
-    total_out_a = sum((t.get("n_output_tokens") or 0) for t in trial_records(job_a))
-    total_out_b = sum((t.get("n_output_tokens") or 0) for t in trial_records(job_b))
-    total_cost_a = sum((t.get("cost_usd") or 0.0) for t in trial_records(job_a))
-    total_cost_b = sum((t.get("cost_usd") or 0.0) for t in trial_records(job_b))
+    total_in_a = sum((trial_metric(t, 'n_input_tokens') or 0) for t in trial_records(job_a))
+    total_in_b = sum((trial_metric(t, 'n_input_tokens') or 0) for t in trial_records(job_b))
+    total_out_a = sum((trial_metric(t, 'n_output_tokens') or 0) for t in trial_records(job_a))
+    total_out_b = sum((trial_metric(t, 'n_output_tokens') or 0) for t in trial_records(job_b))
+    total_cost_a = sum((trial_metric(t, 'cost_usd') or 0.0) for t in trial_records(job_a))
+    total_cost_b = sum((trial_metric(t, 'cost_usd') or 0.0) for t in trial_records(job_b))
     print(f"{'tokens in':<18} {fmt_tokens(total_in_a):>10} {fmt_tokens(total_in_b):>10}")
     print(f"{'tokens out':<18} {fmt_tokens(total_out_a):>10} {fmt_tokens(total_out_b):>10}")
     print(f"{'cost':<18} {fmt_cost(total_cost_a):>10} {fmt_cost(total_cost_b):>10}")
-    print(f"{'wall clock':<18} {fmt_duration(job_a.get('duration_sec')):>10} {fmt_duration(job_b.get('duration_sec')):>10}")
+    print(f"{'wall clock':<18} {fmt_duration(job_duration(job_a)):>10} {fmt_duration(job_duration(job_b)):>10}")
 
     if only_a or only_b:
         print()
@@ -319,27 +379,29 @@ def cmd_task(args: argparse.Namespace) -> int:
         trial_name = trial.get("trial_name", "?")
         print(f"=== {trial_name} ===")
         print(f"Status:       {trial_status(trial)}")
-        print(f"Reward:       {trial.get('reward')}")
-        print(f"Duration:     {fmt_duration(trial.get('duration_sec'))}")
+        print(f"Reward:       {trial_reward(trial)}")
+        print(f"Duration:     {fmt_duration(trial_duration(trial))}")
         print(f"Started:      {trial.get('started_at')}")
         print(f"Ended:        {trial.get('ended_at')}")
-        print(f"Tokens:       in={fmt_tokens(trial.get('n_input_tokens'))}  out={fmt_tokens(trial.get('n_output_tokens'))}")
-        print(f"Cost:         {fmt_cost(trial.get('cost_usd'))}")
-        error_class = trial.get("error_class") or "None"
-        if error_class != "None":
+        print(f"Tokens:       in={fmt_tokens(trial_metric(trial, 'n_input_tokens'))}  out={fmt_tokens(trial_metric(trial, 'n_output_tokens'))}")
+        print(f"Cost:         {fmt_cost(trial_metric(trial, 'cost_usd'))}")
+        error_class = trial_error_class(trial)
+        if error_class:
             print(f"Error class:  {error_class}")
             msg = trial.get("error_message") or ""
             for line in msg.splitlines()[:10]:
                 print(f"  {line}")
-        verifier = trial.get("verifier_result") or {}
-        if verifier:
-            print(f"Verifier:     score={verifier.get('score')}")
+        verifier = trial.get("verifier_result") or trial.get("result") or {}
+        if isinstance(verifier, dict) and verifier:
+            score = verifier.get("score")
+            if score is not None:
+                print(f"Verifier:     score={score}")
             v_err = verifier.get("error")
             if v_err:
-                print(f"  error: {v_err[:200]}")
-            v_out = verifier.get("output") or ""
+                print(f"  error: {str(v_err)[:200]}")
+            v_out = verifier.get("output") or verifier.get("stdout") or ""
             if v_out:
-                tail = "\n".join(v_out.splitlines()[-15:])
+                tail = "\n".join(str(v_out).splitlines()[-15:])
                 print("  output (last 15 lines):")
                 for line in tail.splitlines():
                     print(f"    {line}")
