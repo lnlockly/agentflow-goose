@@ -606,12 +606,12 @@ def trial_reward(trial: TrialResult) -> float | None:
 
 
 def trial_error(trial: TrialResult) -> tuple[str, str] | None:
-    """Return ``(exception_class, exception_message)`` if the trial errored,
-    else ``None``. Looks at the agent stage first since that's where
-    AgentTimeoutError and friends surface."""
-    for stage_error in (trial.errors.agent, trial.errors.verifier, trial.errors.setup):
-        if stage_error is not None:
-            return stage_error.exception_class, stage_error.exception_message
+    """Return ``(error_type, error_message)`` from the first stage that
+    errored, or ``None`` if all stages were clean. Checks the agent
+    stage first since that's where AgentTimeoutError and friends surface."""
+    for stage in (trial.metadata.agent, trial.metadata.verifier, trial.metadata.setup):
+        if stage is not None and stage.error is not None:
+            return stage.error.error_type, stage.error.error_message
     return None
 
 
@@ -619,8 +619,8 @@ def trial_status(trial: TrialResult) -> str:
     """Classify a trial as pass / partial / fail / timeout / error / no-reward."""
     err = trial_error(trial)
     if err is not None:
-        exception_class, _ = err
-        if "timeout" in exception_class.lower():
+        error_type, _ = err
+        if "timeout" in error_type.lower():
             return "timeout"
         return "error"
     reward = trial_reward(trial)
@@ -644,8 +644,10 @@ def job_model(job: LoadedJob) -> str:
         if model:
             return model
     for trial in job.results:
-        if trial.agent_metadata and trial.agent_metadata.model:
-            return trial.agent_metadata.model
+        if trial.metadata.agent and trial.metadata.agent.metadata:
+            agent_meta = trial.metadata.agent.metadata.agent_metadata
+            if agent_meta and agent_meta.model:
+                return agent_meta.model
     return "?"
 
 
