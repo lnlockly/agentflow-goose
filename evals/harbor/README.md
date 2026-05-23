@@ -9,7 +9,9 @@ Requires `uv`, `harbor`, and Docker on the host. The `cmd.py` script uses
 [PEP 723 inline metadata](https://peps.python.org/pep-0723/) — `uv` will install
 its Python dependencies (just `harbor` and `PyYAML`) on first run.
 
-Drop a `.env` file in this directory with the secrets you need:
+Provide secrets via a `.env` file or your shell environment. `cmd.py` looks
+for `.env` in the current working directory first, then in this script's
+directory. Example:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...

@@ -41,7 +41,6 @@ HARBOR_DIR = Path(__file__).resolve().parent
 RUNS_DIR = HARBOR_DIR / "runs"
 CONFIGS_DIR = HARBOR_DIR / "configs"
 CONFIG_TEMPLATE_PATH = HARBOR_DIR / "config_template.yaml"
-ENV_PATH = HARBOR_DIR / ".env"
 
 DEFAULT_DATASET = "terminal-bench/terminal-bench-2"
 DEFAULT_MODEL = "anthropic/claude-sonnet-4-6"
@@ -365,10 +364,21 @@ class GooseBinaryAgent(Goose):
 # ---------------------------------------------------------------------------
 
 
+def find_dotenv() -> Path | None:
+    cwd_env = Path.cwd() / ".env"
+    if cwd_env.is_file():
+        return cwd_env
+    script_env = HARBOR_DIR / ".env"
+    if script_env.is_file():
+        return script_env
+    return None
+
+
 def load_dotenv() -> None:
-    if not ENV_PATH.is_file():
+    env_path = find_dotenv()
+    if env_path is None:
         return
-    for line in ENV_PATH.read_text().splitlines():
+    for line in env_path.read_text().splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
@@ -469,7 +479,7 @@ def build_harbor_config(args: argparse.Namespace) -> dict[str, Any]:
     if missing_secrets:
         raise ValueError(
             f"Missing env vars for provider '{provider}': {', '.join(missing_secrets)}. "
-            f"Set them in {ENV_PATH.name} or your shell."
+            f"Set them in a .env file (cwd or {HARBOR_DIR}) or your shell."
         )
 
     agent_kwargs: dict[str, Any] = {
