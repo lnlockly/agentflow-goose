@@ -599,28 +599,42 @@ def load_job(job_dir: Path) -> LoadedJob:
     return LoadedJob(summary=summary, results=results, job_dir=job_dir)
 
 
-def trial_status(trial: TrialResult) -> str:
-    """Classify a trial as pass / partial / fail / timeout / error / no-reward.
+def trial_reward(trial: TrialResult) -> float | None:
+    if trial.verifier_result is None:
+        return None
+    return trial.verifier_result.score
 
-    Harbor's per-trial ``trial_status`` field is unreliable (it reads
-    "failed" even for trials with reward 1.0), so we look at the actual
-    reward and error fields instead.
-    """
-    if trial.error_class:
-        if "timeout" in trial.error_class.lower():
+
+def trial_error(trial: TrialResult) -> tuple[str, str] | None:
+    """Return ``(exception_class, exception_message)`` if the trial errored,
+    else ``None``. Looks at the agent stage first since that's where
+    AgentTimeoutError and friends surface."""
+    for stage_error in (trial.errors.agent, trial.errors.verifier, trial.errors.setup):
+        if stage_error is not None:
+            return stage_error.exception_class, stage_error.exception_message
+    return None
+
+
+def trial_status(trial: TrialResult) -> str:
+    """Classify a trial as pass / partial / fail / timeout / error / no-reward."""
+    err = trial_error(trial)
+    if err is not None:
+        exception_class, _ = err
+        if "timeout" in exception_class.lower():
             return "timeout"
         return "error"
-    if trial.reward is None:
+    reward = trial_reward(trial)
+    if reward is None:
         return "no-reward"
-    if trial.reward >= 1.0:
+    if reward >= 1.0:
         return "pass"
-    if trial.reward > 0:
+    if reward > 0:
         return "partial"
     return "fail"
 
 
 def job_duration(job: LoadedJob) -> float | None:
-    durations = [t.duration_seconds for t in job.results if t.duration_seconds]
+    durations = [t.total_duration_seconds for t in job.results if t.total_duration_seconds]
     return max(durations) if durations else None
 
 
@@ -630,8 +644,8 @@ def job_model(job: LoadedJob) -> str:
         if model:
             return model
     for trial in job.results:
-        if trial.agent_info and trial.agent_info.model_name:
-            return trial.agent_info.model_name
+        if trial.agent_metadata and trial.agent_metadata.model:
+            return trial.agent_metadata.model
     return "?"
 
 
@@ -733,9 +747,9 @@ def cmd_show(args: argparse.Namespace) -> int:
     )
     if total:
         print(f"Pass rate:    {100 * counts['pass'] / total:.1f}%")
-    total_in = sum((t.n_input_tokens or 0) for t in job.results)
-    total_out = sum((t.n_output_tokens or 0) for t in job.results)
-    total_cost = sum((t.cost_usd or 0.0) for t in job.results)
+    total_in = sum((t.metrics.n_input_tokens or 0) for t in job.results)
+    total_out = sum((t.metrics.n_output_tokens or 0) for t in job.results)
+    total_cost = sum((t.metrics.cost_usd or 0.0) for t in job.results)
     print(f"Tokens:       in={fmt_tokens(total_in)}  out={fmt_tokens(total_out)}")
     print(f"Cost:         {fmt_cost(total_cost)}")
     print()
@@ -748,18 +762,23 @@ def cmd_show(args: argparse.Namespace) -> int:
         status = trial_status(trial)
         if args.status and status != args.status:
             continue
-        reward_str = f"{trial.reward:.2f}" if trial.reward is not None else "-"
-        err = trial.error_class or ""
-        msg = (trial.error_message or "").splitlines()[0] if trial.error_message else ""
-        err_str = f"{err}: {msg}" if err and msg else err
+        reward = trial_reward(trial)
+        reward_str = f"{reward:.2f}" if reward is not None else "-"
+        error = trial_error(trial)
+        if error is not None:
+            exception_class, message = error
+            msg_first_line = (message or "").splitlines()[0] if message else ""
+            err_str = f"{exception_class}: {msg_first_line}" if msg_first_line else exception_class
+        else:
+            err_str = ""
         if len(err_str) > 50:
             err_str = err_str[:47] + "..."
         print(
             f"{task_name(trial):<45} {status:<10} {reward_str:>7} "
-            f"{fmt_duration(trial.duration_seconds):>7} "
-            f"{fmt_tokens(trial.n_input_tokens):>7} "
-            f"{fmt_tokens(trial.n_output_tokens):>7} "
-            f"{fmt_cost(trial.cost_usd):>7}  {err_str}"
+            f"{fmt_duration(trial.total_duration_seconds):>7} "
+            f"{fmt_tokens(trial.metrics.n_input_tokens):>7} "
+            f"{fmt_tokens(trial.metrics.n_output_tokens):>7} "
+            f"{fmt_cost(trial.metrics.cost_usd):>7}  {err_str}"
         )
     return 0
 
@@ -775,20 +794,22 @@ def cmd_task(args: argparse.Namespace) -> int:
         return 1
 
     for trial in matches:
-        print(f"=== {trial.trial_name} ===")
+        print(f"=== {trial.attempt_id} ===")
         print(f"Status:       {trial_status(trial)}")
-        print(f"Reward:       {trial.reward}")
-        print(f"Duration:     {fmt_duration(trial.duration_seconds)}")
+        print(f"Reward:       {trial_reward(trial)}")
+        print(f"Duration:     {fmt_duration(trial.total_duration_seconds)}")
         print(f"Started:      {trial.started_at}")
         print(f"Ended:        {trial.ended_at}")
         print(
-            f"Tokens:       in={fmt_tokens(trial.n_input_tokens)}  "
-            f"out={fmt_tokens(trial.n_output_tokens)}"
+            f"Tokens:       in={fmt_tokens(trial.metrics.n_input_tokens)}  "
+            f"out={fmt_tokens(trial.metrics.n_output_tokens)}"
         )
-        print(f"Cost:         {fmt_cost(trial.cost_usd)}")
-        if trial.error_class:
-            print(f"Error class:  {trial.error_class}")
-            for line in (trial.error_message or "").splitlines()[:10]:
+        print(f"Cost:         {fmt_cost(trial.metrics.cost_usd)}")
+        error = trial_error(trial)
+        if error is not None:
+            exception_class, message = error
+            print(f"Error class:  {exception_class}")
+            for line in (message or "").splitlines()[:10]:
                 print(f"  {line}")
         verifier = trial.verifier_result
         if verifier:
@@ -802,7 +823,7 @@ def cmd_task(args: argparse.Namespace) -> int:
                 for line in tail.splitlines():
                     print(f"    {line}")
 
-        trial_dir = job_dir / trial.trial_name
+        trial_dir = job_dir / trial.attempt_id
         if trial_dir.is_dir():
             print(f"\nArtifacts in: {trial_dir}")
             agent_log = trial_dir / "agent" / "goose.txt"
@@ -852,8 +873,8 @@ def cmd_compare(args: argparse.Namespace) -> int:
     if na and nb:
         row("pass rate %", 100 * ca["pass"] / na, 100 * cb["pass"] / nb, "{:.1f}")
 
-    def total(job: JobResult, attr: str) -> float:
-        return sum((getattr(t, attr) or 0) for t in job.results)
+    def total(job: LoadedJob, attr: str) -> float:
+        return sum((getattr(t.metrics, attr) or 0) for t in job.results)
 
     print(f"{'tokens in':<18} {fmt_tokens(int(total(job_a, 'n_input_tokens'))):>10} "
           f"{fmt_tokens(int(total(job_b, 'n_input_tokens'))):>10}")
