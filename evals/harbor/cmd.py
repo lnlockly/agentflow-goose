@@ -585,13 +585,17 @@ def trial_error_class(trial: dict[str, Any]) -> str:
     error_class = trial.get("error_class")
     if error_class and error_class != "None":
         return error_class
-    status = trial.get("trial_status")
-    if status and status not in {"completed", "ok", "success"}:
-        return status
     return ""
 
 
 def trial_status(trial: dict[str, Any]) -> str:
+    """Classify a trial based on its actual error/reward state.
+
+    Note: harbor's per-trial ``trial_status`` field is *not* a reliable
+    signal — it's "failed" for any trial that didn't reach a perfect
+    reward, including ones the verifier scored 1.0. Treat reward and
+    error_class as the source of truth instead.
+    """
     error_class = trial_error_class(trial)
     if error_class:
         if "timeout" in error_class.lower():
@@ -656,6 +660,8 @@ def task_name(trial: dict[str, Any]) -> str:
             return name
     elif isinstance(task_id, str) and task_id:
         return task_id.split("/", 1)[-1]
+    elif isinstance(task_id, list) and task_id and isinstance(task_id[0], str):
+        return task_id[0]
     return trial.get("trial_name", "?").rsplit(".", 1)[0]
 
 
