@@ -560,7 +560,7 @@ def cmd_run(args: argparse.Namespace) -> int:
 
 
 def load_job(job_dir: Path) -> JobResult:
-    return JobResult.load_path(job_dir.parent, job_dir.name)
+    return JobResult.model_validate_json((job_dir / "result.json").read_text())
 
 
 def trial_status(trial: TrialResult) -> str:
