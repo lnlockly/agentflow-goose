@@ -68,7 +68,11 @@ Use `--dry-run` to write the harbor config without launching.
 
 ```
 evals/harbor/
-  cmd.py                   single entry point (run + reporting)
+  cmd.py                   entry point: argparse + dispatch
+  runner.py                `run` subcommand: build harbor config, launch
+  agent.py                 GooseBinaryAgent (imported by harbor worker)
+  reporter.py              list/show/task/compare subcommands
+  paths.py                 shared paths and provider secret map
   config_template.yaml     goose config template; --extensions toggles enabled flags
   configs/                 hand-written harbor configs (e.g. for the pi agent)
   runs/                    per-job outputs (gitignored)
@@ -78,7 +82,8 @@ evals/harbor/
 ## How it works
 
 `cmd.py run` builds a harbor JSON config that:
-- Points harbor at `cmd:GooseBinaryAgent` (the agent class is in the same file).
+- Points harbor at `agent:GooseBinaryAgent` (loaded from `agent.py`; harbor's
+  worker imports it via `PYTHONPATH=evals/harbor/`).
 - Forwards provider secrets from the host shell into the task container via
   harbor's `environment.env`.
 - Sends a `config.yaml` rendered from `config_template.yaml` (with the requested
