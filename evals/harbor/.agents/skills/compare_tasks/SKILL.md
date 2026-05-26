@@ -46,16 +46,35 @@ will show what's there — task dirs are named `<task>.1`.)
 
 ### 2. Read the task spec
 
-For terminal-bench-2 tasks, the dataset is cached at
-`~/.cache/harbor/datasets/terminal-bench__terminal-bench-2__*/tasks/<task>/`.
+The task definitions are NOT in the harbor Python package. They are plain
+text files on disk, in harbor's dataset cache. Do not run `find /` or
+`pip show harbor` — that is the wrong direction.
 
-Read:
-- `instruction.md` — what the agent was asked to do
-- `tests/test_outputs.py` or `run-tests.sh` — what the verifier actually checks
-- `solution/` if present — what a correct answer looks like
+Find the task directory (works on Linux and macOS):
 
-Without these three you can't tell whether a wrong answer was a misread, a
-shallow bug, or a verifier surprise.
+```bash
+TASK=<task-name>
+TASK_DIR=$(
+  ls -d ~/.cache/harbor/datasets/terminal-bench__terminal-bench-2__*/tasks/"$TASK"/ 2>/dev/null \
+  || ls -d ~/Library/Caches/harbor/datasets/terminal-bench__terminal-bench-2__*/tasks/"$TASK"/ 2>/dev/null
+)
+echo "$TASK_DIR"
+ls "$TASK_DIR"
+```
+
+If both lookups return empty, the dataset hasn't been downloaded yet — bail
+out and report that, rather than guessing.
+
+Inside, you care about three files:
+
+- `instruction.md` — exactly what the agent was asked to do
+- `tests/test_outputs.py` (or sometimes `run-tests.sh`) — what the verifier
+  actually checks, line by line
+- `solution/solution.sh` — the reference correct answer
+
+Without all three you can't tell whether a wrong answer was a misread, a
+shallow bug, or a verifier surprise. **Quote the assertion that failed**
+when you describe a failure — paraphrasing is how wrong conclusions sneak in.
 
 ### 3. Read each agent's trajectory
 
