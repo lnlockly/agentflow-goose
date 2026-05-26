@@ -23,7 +23,7 @@ use tokio::sync::{oneshot, Mutex as TokioMutex};
 
 // Public Grok-CLI OAuth client. xAI's auth server rejects loopback OAuth from
 // non-allowlisted clients, so we reuse the Grok-CLI client_id that xAI ships
-// for desktop OAuth flows. Same client_id used by opencode's xai plugin.
+// for desktop OAuth flows.
 const CLIENT_ID: &str = "b1a00492-073a-47ea-816f-4c329264a828";
 
 const AUTHORIZE_URL: &str = "https://auth.x.ai/oauth2/authorize";
