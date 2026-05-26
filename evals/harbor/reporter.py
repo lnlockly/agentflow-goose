@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -324,6 +325,30 @@ def cmd_rm(args: argparse.Namespace) -> int:
         shutil.rmtree(target)
         print(f"removed {target.name}")
     return 0
+
+
+def cmd_pull(args: argparse.Namespace) -> int:
+    """Rsync runs from a remote into the local runs directory.
+
+    ``remote`` should be ``user@host:/path/to/goose`` — we append
+    ``/evals/harbor/runs/`` and pull into our own runs/.
+    """
+    remote = args.remote.rstrip("/")
+    if ":" not in remote:
+        print("remote must include host:path, e.g. tbench@douwe.com:/home/tbench/work/goose", file=sys.stderr)
+        return 2
+    source = f"{remote}/evals/harbor/runs/"
+    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    cmd = ["rsync", "-az", "--info=stats1"]
+    if args.delete:
+        cmd.append("--delete")
+    if args.jobs:
+        for name in args.jobs:
+            cmd.extend(["--include", f"{name}/", "--include", f"{name}/**"])
+        cmd.extend(["--exclude", "*"])
+    cmd.extend([source, str(RUNS_DIR) + "/"])
+    print(" ".join(cmd))
+    return subprocess.run(cmd, check=False).returncode
 
 
 def cmd_compare(args: argparse.Namespace) -> int:

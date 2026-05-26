@@ -19,7 +19,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from reporter import cmd_compare, cmd_list, cmd_rm, cmd_show, cmd_task
+from reporter import cmd_compare, cmd_list, cmd_pull, cmd_rm, cmd_show, cmd_task
 from runner import (
     DEFAULT_CONCURRENCY,
     DEFAULT_DATASET,
@@ -90,6 +90,22 @@ def build_parser() -> argparse.ArgumentParser:
     p_rm.add_argument("job_names", nargs="+", help="job names under runs/")
     p_rm.add_argument("-y", "--yes", action="store_true", help="skip confirmation prompt")
 
+    p_pull = sub.add_parser("pull", help="rsync runs from a remote machine")
+    p_pull.add_argument(
+        "remote",
+        help="user@host:/path/to/goose (we append evals/harbor/runs/)",
+    )
+    p_pull.add_argument(
+        "--jobs",
+        nargs="*",
+        help="restrict to specific job names (default: all runs)",
+    )
+    p_pull.add_argument(
+        "--delete",
+        action="store_true",
+        help="remove local runs that no longer exist on the remote",
+    )
+
     return parser
 
 
@@ -107,6 +123,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_compare(args)
     if args.cmd == "rm":
         return cmd_rm(args)
+    if args.cmd == "pull":
+        return cmd_pull(args)
     return 2
 
 
