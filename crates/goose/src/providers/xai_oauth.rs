@@ -1,8 +1,10 @@
 use super::api_client::{ApiClient, AuthMethod, AuthProvider};
-use super::base::{ConfigKey, ProviderDef, ProviderMetadata};
+use super::base::{ConfigKey, MessageStream, Provider, ProviderDef, ProviderMetadata};
+use super::errors::ProviderError;
 use super::openai_compatible::OpenAiCompatibleProvider;
 use super::xai::{XAI_API_HOST, XAI_DEFAULT_MODEL, XAI_KNOWN_MODELS};
 use crate::config::paths::Paths;
+use crate::conversation::message::Message;
 use crate::model::ModelConfig;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -10,6 +12,7 @@ use axum::{extract::Query, response::Html, routing::get, Router};
 use base64::Engine;
 use chrono::{DateTime, Utc};
 use futures::future::BoxFuture;
+use rmcp::model::Tool;
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 use std::io;
@@ -672,7 +675,17 @@ impl AuthProvider for XaiOAuthAuthProvider {
     }
 }
 
-pub struct XaiOAuthProvider;
+/// Delegating Provider that forwards chat/stream/etc. to an inner
+/// `OpenAiCompatibleProvider` pointed at `https://api.x.ai/v1`, but overrides
+/// `configure_oauth` so the desktop "Sign in" button (and any other caller of
+/// `Provider::configure_oauth`) drives the loopback / device-code flow.
+#[derive(serde::Serialize)]
+pub struct XaiOAuthProvider {
+    #[serde(skip)]
+    inner: OpenAiCompatibleProvider,
+    #[serde(skip)]
+    auth_provider: Arc<XaiOAuthAuthProvider>,
+}
 
 impl XaiOAuthProvider {
     pub async fn cleanup() -> Result<()> {
@@ -681,8 +694,71 @@ impl XaiOAuthProvider {
     }
 }
 
+#[async_trait]
+impl Provider for XaiOAuthProvider {
+    fn get_name(&self) -> &str {
+        self.inner.get_name()
+    }
+
+    fn get_model_config(&self) -> ModelConfig {
+        self.inner.get_model_config()
+    }
+
+    async fn stream(
+        &self,
+        model_config: &ModelConfig,
+        session_id: &str,
+        system: &str,
+        messages: &[Message],
+        tools: &[Tool],
+    ) -> Result<MessageStream, ProviderError> {
+        self.inner
+            .stream(model_config, session_id, system, messages, tools)
+            .await
+    }
+
+    async fn fetch_supported_models(&self) -> Result<Vec<String>, ProviderError> {
+        self.inner.fetch_supported_models().await
+    }
+
+    async fn configure_oauth(&self) -> Result<(), ProviderError> {
+        // Preserve the previous token so a partially-completed sign-in
+        // attempt (e.g. user closes the browser) doesn't sign them out.
+        let previous_token = self.auth_provider.cache.load();
+        self.auth_provider.cache.clear();
+
+        let flow_result = match perform_loopback_oauth_flow(self.auth_provider.state.as_ref()).await
+        {
+            Ok(td) => Ok(td),
+            Err(e) => {
+                tracing::warn!(
+                    "xAI loopback OAuth failed ({}); falling back to device-code flow",
+                    e
+                );
+                perform_device_code_flow().await
+            }
+        };
+
+        let save_result =
+            flow_result.and_then(|token_data| self.auth_provider.cache.save(&token_data));
+
+        if let Err(e) = save_result {
+            if let Some(previous_token) = previous_token.as_ref() {
+                if self.auth_provider.cache.load().is_none() {
+                    let _ = self.auth_provider.cache.save(previous_token);
+                }
+            }
+            return Err(ProviderError::Authentication(format!(
+                "xAI OAuth flow failed: {}",
+                e
+            )));
+        }
+        Ok(())
+    }
+}
+
 impl ProviderDef for XaiOAuthProvider {
-    type Provider = OpenAiCompatibleProvider;
+    type Provider = Self;
 
     fn metadata() -> ProviderMetadata {
         ProviderMetadata::new(
@@ -702,27 +778,48 @@ impl ProviderDef for XaiOAuthProvider {
     fn from_env(
         model: ModelConfig,
         _extensions: Vec<crate::config::ExtensionConfig>,
-    ) -> BoxFuture<'static, Result<OpenAiCompatibleProvider>> {
+    ) -> BoxFuture<'static, Result<Self::Provider>> {
         Box::pin(async move {
             let config = crate::config::Config::global();
             let host: String = config
                 .get_param("XAI_HOST")
                 .unwrap_or_else(|_| XAI_API_HOST.to_string());
 
-            let auth_provider = XaiOAuthAuthProvider::new(XaiAuthState::instance());
-            let api_client = ApiClient::new(host, AuthMethod::Custom(Box::new(auth_provider)))?;
+            let auth_provider = Arc::new(XaiOAuthAuthProvider::new(XaiAuthState::instance()));
+            let auth_for_client = Arc::clone(&auth_provider);
+            let api_client = ApiClient::new(
+                host,
+                AuthMethod::Custom(Box::new(SharedAuthProvider(auth_for_client))),
+            )?;
 
-            Ok(OpenAiCompatibleProvider::new(
+            let inner = OpenAiCompatibleProvider::new(
                 XAI_OAUTH_PROVIDER_NAME.to_string(),
                 api_client,
                 model,
                 String::new(),
-            ))
+            );
+
+            Ok(Self {
+                inner,
+                auth_provider,
+            })
         })
     }
 
     fn inventory_configured() -> bool {
         TokenCache::new().load().is_some()
+    }
+}
+
+/// Adapter so the same `XaiOAuthAuthProvider` can be both owned by the
+/// wrapper (for `configure_oauth`) and embedded as an `AuthMethod::Custom`
+/// boxed `AuthProvider` in the inner `ApiClient`.
+struct SharedAuthProvider(Arc<XaiOAuthAuthProvider>);
+
+#[async_trait]
+impl AuthProvider for SharedAuthProvider {
+    async fn get_auth_header(&self) -> Result<(String, String)> {
+        self.0.get_auth_header().await
     }
 }
 
