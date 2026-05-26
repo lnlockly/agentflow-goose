@@ -415,7 +415,12 @@ if (process.platform !== 'darwin') {
           app.whenReady().then(async () => {
             const recentDirs = loadRecentDirs();
             const openDir = recentDirs.length > 0 ? recentDirs[0] : null;
-            await createChat(app, { dir: openDir || undefined });
+            const prompt = parsedUrl.searchParams.get('prompt') || undefined;
+            await createChat(app, {
+              dir: openDir || undefined,
+              initialMessage: prompt,
+              initialMessageNoAutoSubmit: prompt !== undefined,
+            });
           });
           return;
         }
@@ -485,7 +490,12 @@ async function handleProtocolUrl(url: string) {
   const openDir = recentDirs.length > 0 ? recentDirs[0] : null;
 
   if (parsedUrl.hostname === 'new-session') {
-    await createChat(app, { dir: openDir || undefined });
+    const prompt = parsedUrl.searchParams.get('prompt') || undefined;
+    await createChat(app, {
+      dir: openDir || undefined,
+      initialMessage: prompt,
+      initialMessageNoAutoSubmit: prompt !== undefined,
+    });
     return;
   } else if (parsedUrl.hostname === 'resume') {
     await createResumeChatWindow(parsedUrl, openDir || undefined);
@@ -559,7 +569,12 @@ app.on('open-url', async (_event, url) => {
     if (parsedUrl.hostname === 'new-session') {
       log.info('[Main] Detected new-session URL, creating new chat window');
       openUrlHandledLaunch = true;
-      await createChat(app, { dir: openDir || undefined });
+      const prompt = parsedUrl.searchParams.get('prompt') || undefined;
+      await createChat(app, {
+        dir: openDir || undefined,
+        initialMessage: prompt,
+        initialMessageNoAutoSubmit: prompt !== undefined,
+      });
       return;
     }
 
@@ -777,9 +792,11 @@ const appWindows = new Map<string, BrowserWindow>();
 const windowPowerSaveBlockers = new Map<number, number>(); // windowId -> blockerId
 // Track pending initial messages per window
 const pendingInitialMessages = new Map<number, string>(); // windowId -> initialMessage
+const pendingInitialMessageNoAutoSubmit = new Set<number>(); // windowIds whose initialMessage should NOT auto-submit
 
 interface CreateChatOptions {
   initialMessage?: string;
+  initialMessageNoAutoSubmit?: boolean;
   dir?: string;
   resumeSessionId?: string;
   viewType?: string;
@@ -792,6 +809,7 @@ interface CreateChatOptions {
 const createChat = async (app: App, options: CreateChatOptions = {}) => {
   const {
     initialMessage,
+    initialMessageNoAutoSubmit,
     dir,
     resumeSessionId,
     viewType,
@@ -1137,6 +1155,9 @@ const createChat = async (app: App, options: CreateChatOptions = {}) => {
   // If we have an initial message, store it to send after React is ready
   if (initialMessage) {
     pendingInitialMessages.set(mainWindow.id, initialMessage);
+    if (initialMessageNoAutoSubmit) {
+      pendingInitialMessageNoAutoSubmit.add(mainWindow.id);
+    }
   }
 
   // Set up local keyboard shortcuts that only work when the window is focused
@@ -1542,9 +1563,11 @@ ipcMain.on('react-ready', (event) => {
   // Send any pending initial message for this window
   if (windowId && pendingInitialMessages.has(windowId)) {
     const initialMessage = pendingInitialMessages.get(windowId)!;
+    const noAutoSubmit = pendingInitialMessageNoAutoSubmit.has(windowId);
     log.info('Sending pending initial message to window:', initialMessage);
-    window.webContents.send('set-initial-message', initialMessage);
+    window.webContents.send('set-initial-message', initialMessage, { noAutoSubmit });
     pendingInitialMessages.delete(windowId);
+    pendingInitialMessageNoAutoSubmit.delete(windowId);
   }
 
   if (windowId && pendingDeepLinks.has(windowId) && window) {
