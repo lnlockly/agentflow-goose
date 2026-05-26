@@ -19,19 +19,30 @@ Use when given two harbor run names and a task name, and the goal is to understa
 
 ### 1. Headline facts
 
-For each run, read `RUNS_DIR/<run>/<task>.1/result.json` and extract:
+For each run, read `RUNS_DIR/<run>/<task>.1/result.json` directly — no Python
+import needed. The fields you want:
 
-- status (derive from `result.score` + `agent.error.error_type`):
-  - error if `agent.error` is set
-  - timeout if the error_type contains "timeout"
-  - pass / partial / fail based on `result.score` (>=1 / >0 / 0)
-  - no-reward if `result` is null
-- reward: `result.score`
-- duration: `total_duration_seconds`
-- tokens: `agent_metrics.n_input_tokens`, `agent_metrics.n_output_tokens`
-- error class (if any): `agent.error.error_type`
+```bash
+jq '{
+  reward: .result.score,
+  duration_seconds: .total_duration_seconds,
+  input_tokens: .agent_metrics.n_input_tokens,
+  output_tokens: .agent_metrics.n_output_tokens,
+  cost_usd: .agent_metrics.cost_usd,
+  error_type: .agent.error.error_type,
+  error_message: .agent.error.error_message
+}' RUNS_DIR/<run>/<task>.1/result.json
+```
 
-If either run doesn't have the task, stop and say so.
+Derive status from those:
+
+- error if `error_type` is set and doesn't contain "timeout"
+- timeout if `error_type` contains "timeout"
+- pass / partial / fail by `reward` (>=1 / >0 / 0)
+- no-reward if `reward` is null
+
+If either run doesn't have the task, stop and say so. (`ls RUNS_DIR/<run>/`
+will show what's there — task dirs are named `<task>.1`.)
 
 ### 2. Read the task spec
 
@@ -90,8 +101,8 @@ Output markdown with these sections in order:
 ## Tools you'll need
 
 - file reads against `RUNS_DIR/<run>/<task>.1/`
-- file reads against the dataset cache
-- `jq` is useful for `result.json` but not required
+- file reads against the dataset cache (`~/.cache/harbor/datasets/...`)
+- `jq` for `result.json`
 
-`evals/harbor/cmd.py task <run> <task>` gives a formatted summary but operates
-on the same data — prefer reading the json directly if any number matters.
+No Python imports, no `harbor` package required. Everything you need is on
+disk as JSON / text files.
