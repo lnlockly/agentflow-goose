@@ -339,7 +339,7 @@ def cmd_pull(args: argparse.Namespace) -> int:
         return 2
     source = f"{remote}/evals/harbor/runs/"
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
-    cmd = ["rsync", "-az", "--info=stats1"]
+    cmd = ["rsync", "-az", "--stats"]
     if args.delete:
         cmd.append("--delete")
     if args.jobs:

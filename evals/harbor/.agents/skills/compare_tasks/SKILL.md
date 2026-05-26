@@ -1,6 +1,6 @@
 ---
 name: compare_tasks
-description: Compare how two harbor benchmark runs performed on a single shared task — read both trajectories, the task spec, and the verifier output, and explain what each agent did, why the outcomes differ, and any generalizable lesson.
+description: Compare how two harbor benchmark runs performed on a single shared task
 ---
 
 # Compare two harbor runs on one task
