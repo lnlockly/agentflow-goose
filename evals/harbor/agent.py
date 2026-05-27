@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import os
 import shlex
-import uuid
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -15,7 +14,6 @@ from harbor.agents.installed.base import NonZeroAgentExitCodeError, with_prompt_
 from harbor.agents.installed.goose import Goose
 from harbor.environments.base import BaseEnvironment
 from harbor.models.agent.context import AgentContext
-from harbor.models.trajectories import FinalMetrics, Trajectory
 
 
 PROVIDER_SECRETS = {
@@ -257,10 +255,7 @@ class GooseBinaryAgent(Goose):
             line = line.strip()
             if not line or '"complete"' not in line:
                 continue
-            try:
-                event = json.loads(line)
-            except json.JSONDecodeError:
-                continue
+            event = json.loads(line)
             if event.get("type") != "complete":
                 continue
             total = event.get("total_tokens")
@@ -304,17 +299,3 @@ class GooseBinaryAgent(Goose):
         cost = self._compute_cost_from_pricing(inp, out)
         if cost is not None:
             context.cost_usd = cost
-
-        trajectory: Trajectory | None = self._convert_goose_stream_json_to_atif(
-            log_text, str(uuid.uuid4())
-        )
-        if trajectory:
-            trajectory.final_metrics = FinalMetrics(
-                total_steps=len(trajectory.steps),
-                total_prompt_tokens=inp,
-                total_completion_tokens=out,
-                total_cost_usd=cost,
-                extra={"total_tokens": total} if total else None,
-            )
-            atif_path = self.logs_dir / "trajectory.json"
-            atif_path.write_text(json.dumps(trajectory.to_json_dict(), indent=2))
