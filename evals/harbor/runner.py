@@ -106,10 +106,7 @@ def dataset_config(dataset_ref: str, tasks: list[str]) -> dict[str, Any]:
     if sep:
         dataset["ref" if "/" in name else "version"] = ref
     if tasks:
-        prefix = f"{dataset_name}/"
-        dataset["task_names"] = [
-            t if t.startswith(prefix) else prefix + t for t in tasks
-        ]
+        dataset["task_names"] = tasks
     return dataset
 
 
