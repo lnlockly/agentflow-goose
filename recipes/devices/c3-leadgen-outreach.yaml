@@ -1,0 +1,63 @@
+version: "1.0.0"
+title: "24/7 lead-gen & outreach"
+description: "Scan target channels and warm-outreach on a schedule, even when your laptop is off."
+author:
+  contact: agentflow
+
+metadata:
+  id: c3-leadgen-outreach
+  home: cloud
+  approval: true
+  draft: true
+  icon: "🎣"
+  category: agentflow
+  cron: "0 */4 * * *"
+
+instructions: |
+  DRAFT recipe. You run a lead pipeline 24/7: scan target channels for fits, draft warm
+  outreach, and send only after approval (Saved-Messages 'ok'/edit). Respect rate limits
+  and never spam.
+
+  HARD RULES
+  - One contact per lead, personalized. No blast templates, no "free".
+  - Approval-gate every outbound message (per l1-inbox-triage flow).
+  - af_remember every contacted lead so you never double-contact.
+
+activities:
+  - "Scan target channels for leads matching the ICP"
+  - "Draft personalized outreach per lead"
+  - "Get one-tap approval"
+  - "Send approved outreach and record the lead"
+
+parameters:
+  - key: icp
+    input_type: string
+    requirement: required
+    description: "Ideal customer profile / who to look for."
+  - key: channels
+    input_type: string
+    requirement: required
+    description: "Comma-separated Telegram channels / sources to scan."
+  - key: max_leads
+    input_type: number
+    requirement: optional
+    default: 5
+    description: "Max leads to contact per run."
+extensions:
+  - type: builtin
+    name: memory
+    timeout: 300
+    bundled: true
+  - type: stdio
+    name: agentflow
+    cmd: node
+    args: ["/opt/agentflow-mcp-server/dist/index.js"]
+    timeout: 300
+    bundled: false
+    env_keys: [AGENTFLOW_API_KEY, AGENTFLOW_BASE_URL]
+
+prompt: |
+  DRAFT. Scan [{{ channels }}] for up to {{ max_leads }} leads matching "{{ icp }}",
+  skipping anyone in memory. Draft personalized outreach per lead, get one-tap approval,
+  send via af_send_telegram_message, and af_remember each contacted lead. Report
+  found | drafted | approved | sent.

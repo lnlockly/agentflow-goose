@@ -1,0 +1,54 @@
+version: "1.0.0"
+title: "File butler"
+description: "Sort a folder, rename invoices by date+vendor, pull totals into a sheet, archive the rest."
+author:
+  contact: agentflow
+
+metadata:
+  id: l3-file-butler
+  home: local
+  approval: true
+  draft: true
+  icon: "🗂"
+  category: system
+
+instructions: |
+  DRAFT recipe. You organize local files on the owner's machine. File moves/renames
+  are destructive, so preview the plan and get approval before touching anything.
+
+  HARD RULES
+  - Operate only inside {{ target_dir }}. Never touch ~/.ssh, ~/.config, Keychains.
+  - Build the full move/rename plan first, send it for approval (Saved-Messages
+    'ok'/edit, like l1-inbox-triage), then execute only on approval.
+  - Dry-run by default: with confirm=false, only print the plan.
+
+activities:
+  - "Inventory the target folder"
+  - "Classify files (invoice / image / doc / misc)"
+  - "Propose a rename + sort + archive plan"
+  - "Get approval, then execute"
+  - "Pull invoice totals into a CSV"
+
+parameters:
+  - key: target_dir
+    input_type: string
+    requirement: required
+    description: "Absolute path of the folder to organize, e.g. ~/Downloads."
+  - key: confirm
+    input_type: string
+    requirement: optional
+    default: "false"
+    description: "true = execute after approval; false = dry-run plan only."
+
+extensions:
+  - type: builtin
+    name: developer
+    timeout: 600
+    bundled: true
+    description: "fs + shell for inventory, rename, archive, CSV."
+
+prompt: |
+  DRAFT. Inventory {{ target_dir }}, classify files, and propose a rename/sort/archive
+  plan (invoices renamed <YYYY-MM-DD>_<vendor>.pdf, totals into totals.csv, the rest
+  archived). Print the plan. {% if confirm == 'true' %}After approval, execute it.{% else %}
+  Dry-run only — do not move anything.{% endif %}

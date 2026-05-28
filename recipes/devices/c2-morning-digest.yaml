@@ -1,0 +1,131 @@
+version: "1.0.0"
+title: "Morning digest"
+description: "On a schedule, scrape your niche sources overnight and send a tight Telegram brief at the time you choose."
+author:
+  contact: agentflow
+
+metadata:
+  id: c2-morning-digest
+  home: cloud
+  approval: false
+  draft: false
+  icon: "🌅"
+  category: research
+  # The bridge registers this with Goose's scheduler (manage_schedule) instead of
+  # running once. Default 08:00 daily; the picker overrides via the `cron` param.
+  cron: "0 8 * * *"
+
+instructions: |
+  You are an always-on research assistant on a cloud box. Once a day you read the
+  owner's niche sources, distill what actually matters, and send one tight Telegram
+  brief. You run unattended, so be robust and concise.
+
+  HARD RULES
+  - Output is read-only research → one Telegram message. No other outbound actions.
+  - Keep the brief skimmable: a 1-line intro, then 4–8 bullets, each "topic — why it
+    matters (source)". No filler, no "in today's fast-paced world", no marketing fluff.
+  - If a source is unreachable, skip it and note it in one line at the end; never crash
+    the run.
+  - De-dupe against yesterday: af_recall the last digest and drop items already covered.
+
+activities:
+  - "Scrape each configured niche source for the last 24h"
+  - "Rank items by relevance to the owner's niche"
+  - "De-dupe against yesterday's digest from memory"
+  - "Write a tight, skimmable brief"
+  - "Send the brief to the owner's Telegram"
+  - "Remember today's digest for tomorrow's de-dupe"
+
+parameters:
+  - key: niche
+    input_type: string
+    requirement: required
+    description: "The owner's niche / focus, e.g. 'AI agents and dev tooling' or 'crypto market structure'."
+  - key: sources
+    input_type: string
+    requirement: optional
+    default: "https://news.ycombinator.com/,https://www.reddit.com/r/programming/top/?t=day"
+    description: "Comma-separated URLs to scrape. The agent reads each and pulls fresh items."
+  - key: telegram_chat
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Telegram chat id / @username to send the brief to. Empty = owner's Saved Messages (resolved via af_telegram_whoami)."
+  - key: max_items
+    input_type: number
+    requirement: optional
+    default: 8
+    description: "Max bullets in the brief."
+extensions:
+  - type: builtin
+    name: developer
+    display_name: Developer
+    timeout: 600
+    bundled: true
+    description: "Fetch + parse pages (curl / shell) and write the brief."
+  - type: builtin
+    name: computercontroller
+    display_name: Computer Controller
+    timeout: 600
+    bundled: true
+    description: "web_scrape fallback for JS-heavy sources."
+  - type: builtin
+    name: memory
+    display_name: Memory
+    timeout: 300
+    bundled: true
+    description: "Store/recall yesterday's digest for de-dupe."
+  - type: stdio
+    name: agentflow
+    cmd: node
+    args:
+      - "/opt/agentflow-mcp-server/dist/index.js"
+    timeout: 300
+    bundled: false
+    description: "AgentFlow af_* platform tools: telegram send/whoami, memory."
+    env_keys:
+      - AGENTFLOW_API_KEY
+      - AGENTFLOW_BASE_URL
+
+prompt: |
+  Build today's {{ niche }} digest.
+
+  STEP 1 — fetch. For each URL in [{{ sources }}], fetch the page (developer: curl, or
+  computercontroller web_scrape if it needs JS). Extract fresh items from the last ~24h:
+  title, one-line gist, and the source URL.
+
+  STEP 2 — rank + de-dupe. Keep the {{ max_items }} most relevant to "{{ niche }}".
+  af_recall tag "morning-digest" to get yesterday's items and drop anything already sent.
+
+  STEP 3 — write the brief. Format:
+    "🌅 {{ niche }} — {today}\n\n• <topic> — <why it matters> (<source>)\n• ..."
+  Skimmable, concrete, no fluff.
+
+  STEP 4 — send. Resolve the target: {% if telegram_chat %}{{ telegram_chat }}{% else %}
+  the owner's Saved Messages via af_telegram_whoami{% endif %}. Send with
+  af_send_telegram_message. Then af_remember the digest with tag ["morning-digest"].
+
+  FINAL — print the brief you sent and the chat it went to. If any source failed, add a
+  one-line "skipped: <url> (<reason>)".
+
+response:
+  json_schema:
+    type: object
+    properties:
+      brief:
+        type: string
+        description: "The digest text that was sent."
+      chat:
+        type: string
+        description: "The Telegram chat the brief was sent to."
+      skipped:
+        type: array
+        items:
+          type: string
+        description: "Sources that failed, with reason."
+    required:
+      - brief
+      - chat
+
+settings:
+  temperature: 0.4

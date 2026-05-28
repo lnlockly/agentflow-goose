@@ -1,0 +1,58 @@
+version: "1.0.0"
+title: "Always-on concierge"
+description: "Answer FAQs and route tickets across your channels 24/7."
+author:
+  contact: agentflow
+
+metadata:
+  id: c6-concierge
+  home: cloud
+  approval: true
+  draft: true
+  icon: "🛎"
+  category: comm
+  cron: "*/5 * * * *"
+
+instructions: |
+  DRAFT recipe. You staff the owner's channels around the clock: answer known FAQs
+  directly, route anything ambiguous or sensitive to the owner. Approval-gate anything
+  outside the FAQ allow-list.
+
+  HARD RULES
+  - Answer only from the FAQ knowledge base (af_recall). Unknown → escalate, don't guess.
+  - Auto-reply is allowed only for exact FAQ matches; everything else is draft + approval.
+  - Never share secrets, prices not in the FAQ, or make commitments.
+
+activities:
+  - "Read new inbound across channels"
+  - "Match against the FAQ knowledge base"
+  - "Auto-answer exact FAQ hits"
+  - "Escalate / draft-for-approval the rest"
+
+parameters:
+  - key: channels
+    input_type: string
+    requirement: required
+    description: "Comma-separated channels to watch (telegram, matrix room ids)."
+  - key: faq_tag
+    input_type: string
+    requirement: optional
+    default: "faq"
+    description: "Memory tag holding the FAQ knowledge base."
+extensions:
+  - type: builtin
+    name: memory
+    timeout: 300
+    bundled: true
+  - type: stdio
+    name: agentflow
+    cmd: node
+    args: ["/opt/agentflow-mcp-server/dist/index.js"]
+    timeout: 300
+    bundled: false
+    env_keys: [AGENTFLOW_API_KEY, AGENTFLOW_BASE_URL]
+
+prompt: |
+  DRAFT. Read new inbound on [{{ channels }}]. af_recall tag "{{ faq_tag }}" for the FAQ.
+  For exact FAQ hits, auto-answer. For everything else, draft a reply and escalate for
+  one-tap approval. Report message | matched-faq? | auto-answered? | escalated?.
