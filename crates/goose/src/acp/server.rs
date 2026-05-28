@@ -500,6 +500,7 @@ fn mcp_server_to_extension_config(mcp_server: McpServer) -> Result<ExtensionConf
                 envs: Envs::new(stdio.env.into_iter().map(|e| (e.name, e.value)).collect()),
                 env_keys: vec![],
                 timeout,
+                cwd: None,
                 bundled: Some(false),
                 available_tools: vec![],
             })
@@ -3676,6 +3677,7 @@ mod tests {
             ),
             env_keys: vec![],
             timeout: None,
+            cwd: None,
             bundled: Some(false),
             available_tools: vec![],
         })

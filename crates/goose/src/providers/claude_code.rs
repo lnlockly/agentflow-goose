@@ -1127,6 +1127,7 @@ mod tests {
             envs: Envs::new([("API_KEY".into(), "secret".into())].into()),
             env_keys: vec![],
             timeout: None,
+            cwd: None,
             bundled: Some(false),
             available_tools: vec![],
         }],

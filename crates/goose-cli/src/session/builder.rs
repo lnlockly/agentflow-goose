@@ -428,6 +428,12 @@ async fn collect_extension_configs(
     );
 
     let mut all: Vec<ExtensionConfig> = configured_extensions;
+    if !session_config.no_profile && !session_config.resume && recipe.is_none() {
+        let project_root = std::env::current_dir().ok();
+        all.extend(goose::plugins::mcp_servers::enabled_plugin_mcp_servers(
+            project_root.as_deref(),
+        ));
+    }
     all.extend(cli_flag_extensions.into_iter().map(|(_, cfg)| cfg));
 
     Ok(all)
