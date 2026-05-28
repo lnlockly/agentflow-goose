@@ -608,9 +608,35 @@ const SessionListView: React.FC<SessionListViewProps> = React.memo(
       [intl]
     );
 
-    const handleImportClick = useCallback(() => {
+    const handleImportClick = useCallback(async () => {
+      // Prefer the native picker: it can show hidden directories (so users can
+      // reach `~/.claude/projects/...` or `~/.pi/agent/sessions/...`) and we
+      // can filter for .json/.jsonl in one place.
+      const native = window.electron?.selectImportSessionFile;
+      if (typeof native === 'function') {
+        try {
+          const result = await native();
+          if (!result) return;
+          if (result.error) {
+            toast.error(intl.formatMessage(i18n.importFailed, { error: result.error }));
+            return;
+          }
+          await importSession({
+            body: { json: result.contents },
+            throwOnError: true,
+          });
+          toast.success(intl.formatMessage(i18n.importSuccess));
+          await loadSessions();
+        } catch (error) {
+          toast.error(
+            intl.formatMessage(i18n.importFailed, { error: errorMessage(error, 'Unknown error') })
+          );
+        }
+        return;
+      }
+      // Fallback for non-Electron contexts (tests, web build).
       fileInputRef.current?.click();
-    }, []);
+    }, [intl, loadSessions]);
 
     const handleImportNostrLink = useCallback(async () => {
       const deeplink = nostrImportLink.trim();
@@ -1081,7 +1107,7 @@ const SessionListView: React.FC<SessionListViewProps> = React.memo(
         <input
           ref={fileInputRef}
           type="file"
-          accept=".json"
+          accept=".json,.jsonl,application/json,application/x-ndjson"
           onChange={handleImportSession}
           className="hidden"
         />

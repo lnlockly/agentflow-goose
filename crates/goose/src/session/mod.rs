@@ -1,6 +1,7 @@
 mod chat_history_search;
 mod diagnostics;
 pub mod extension_data;
+pub mod import_formats;
 mod legacy;
 pub mod nostr_share;
 pub mod session_manager;
