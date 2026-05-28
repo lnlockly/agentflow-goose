@@ -1,0 +1,65 @@
+version: "1.0.0"
+title: "Content factory"
+description: "Generate and schedule posts / blog drafts on a cadence, queued for approval."
+author:
+  contact: agentflow
+
+metadata:
+  id: c5-content-factory
+  home: cloud
+  approval: true
+  draft: true
+  icon: "✍️"
+  category: comm
+  cron: "0 9 * * 1,3,5"
+
+instructions: |
+  DRAFT recipe. You produce content on a cadence — a post or blog draft per run — in the
+  owner's voice, queued for approval before anything publishes.
+
+  HARD RULES
+  - Draft in the owner's voice (af_recall prior content). No fluff, no "free".
+  - Queue for approval (Saved-Messages 'ok'/edit); publish only on approval.
+  - Vary topics across runs; af_remember what's been produced to avoid repeats.
+
+activities:
+  - "Pick a fresh angle in the content theme"
+  - "Draft the piece in the owner's voice"
+  - "Queue for one-tap approval"
+  - "Publish / schedule on approval"
+
+parameters:
+  - key: theme
+    input_type: string
+    requirement: required
+    description: "Content theme / pillar."
+  - key: format
+    input_type: select
+    requirement: optional
+    default: "social-post"
+    description: "What to produce."
+    options:
+      - social-post
+      - blog-draft
+      - thread
+extensions:
+  - type: builtin
+    name: memory
+    timeout: 300
+    bundled: true
+  - type: builtin
+    name: developer
+    timeout: 600
+    bundled: true
+  - type: stdio
+    name: agentflow
+    cmd: node
+    args: ["/opt/agentflow-mcp-server/dist/index.js"]
+    timeout: 300
+    bundled: false
+    env_keys: [AGENTFLOW_API_KEY, AGENTFLOW_BASE_URL]
+
+prompt: |
+  DRAFT. Produce one {{ format }} on theme "{{ theme }}" in the owner's voice, picking an
+  angle not in memory. Queue it for one-tap approval, and publish/schedule only on
+  approval. af_remember the produced piece. Report angle | drafted | approved | published.

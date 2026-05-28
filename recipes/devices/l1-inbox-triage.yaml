@@ -1,0 +1,144 @@
+version: "1.0.0"
+title: "Inbox triage & reply-drafting"
+description: "Watch Kwork + Telegram, classify new messages, draft a reply in your voice, and pause for one-tap approval before sending."
+author:
+  contact: agentflow
+
+# AgentFlow picker metadata (Goose ignores unknown top-level keys).
+metadata:
+  id: l1-inbox-triage
+  home: local
+  approval: true
+  draft: false
+  icon: "📨"
+  category: comm
+
+instructions: |
+  You are the owner's personal inbox operator on their own machine. You read the
+  owner's logged-in Kwork and Telegram, you NEVER auto-send anything outbound, and
+  you draft replies in the owner's voice.
+
+  HARD RULES
+  - Never send a reply to a buyer / contact without explicit approval (see APPROVAL).
+  - Treat MCP errors as data: every Kwork tool returns `{error: "rate_limited" |
+    "auth_expired" | "captcha" | "banned" | ...}` on session failure. If you see one,
+    stop that source, report it plainly, and move on — do not retry in a loop.
+  - One reply per new message. Do not invent messages that are not in the inbox.
+  - Keep drafts short, human, and in the owner's voice. Pull the owner's past replies
+    from memory (af_recall) to match tone; never use marketing fluff. If af_recall
+    errors (HTTP 500 / no device), that is NOT a blocker — skip tone recall and draft in
+    a plain, human, professional voice anyway. Only a failure to READ the message itself
+    stops a draft.
+
+  APPROVAL (one-tap, via Telegram)
+  AgentFlow exposes no interactive approval tool, so approval is a Telegram round-trip:
+    1. Resolve the owner's Telegram identity with af_telegram_whoami.
+    2. For each drafted reply, send a preview to the owner's Saved Messages with
+       af_send_telegram_message, body exactly:
+         "DRAFT → {source} / {peer}\n\nThey said: {their_message}\n\nProposed reply:\n{draft}\n\nReply 'ok' to send, or send your edit."
+       (Saved Messages = chat_id of the owner's own user id from whoami.)
+    3. Wait for approval: poll af_telegram_messages on Saved Messages (every ~20s, up to
+       {{ approval_wait_seconds }}s). If the owner replies 'ok' / 'отправь' / 'send',
+       send the proposed reply. If they reply with edited text, send that instead.
+       If no reply within the window, DO NOT send — record "approval timed out".
+    4. Only after approval, send the real reply (Kwork: kwork-inbox send_message with the
+       dialog_id; Telegram: af_send_telegram_message to the peer).
+
+activities:
+  - "List new Kwork inbox dialogs and Telegram unread chats"
+  - "Classify each new message (lead / question / spam / fyi)"
+  - "Recall the owner's voice from memory"
+  - "Draft a contextual reply per message"
+  - "Send each draft to Saved Messages and wait for one-tap approval"
+  - "Send the approved reply to the original peer"
+  - "Remember the sent reply to sharpen future tone"
+
+parameters:
+  - key: kwork_session_secret
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "account_session_secret_key for the logged-in Kwork session (from the device's connected integration). Leave empty to skip Kwork and triage Telegram only."
+  - key: max_messages
+    input_type: number
+    requirement: optional
+    default: 5
+    description: "Max new messages to triage in one run."
+  - key: approval_wait_seconds
+    input_type: number
+    requirement: optional
+    default: 300
+    description: "How long to wait for the owner's one-tap approval before giving up on a draft."
+  - key: sources
+    input_type: string
+    requirement: optional
+    default: "kwork,telegram"
+    description: "Comma-separated sources to watch: kwork, telegram, or both."
+  - key: kwork_inbox_mcp_url
+    input_type: string
+    requirement: optional
+    default: "https://agentflow.website/internal/mcp/kwork-inbox"
+    description: "Streamable-http URL of the kwork-inbox MCP server."
+
+extensions:
+  - type: builtin
+    name: memory
+    display_name: Memory
+    timeout: 300
+    bundled: true
+    description: "Recall the owner's past replies to match their voice."
+  # AgentFlow platform tools (telegram send/read/whoami, memory). Loaded as a
+  # stdio extension — built by another agent, consumed here, not edited.
+  - type: stdio
+    name: agentflow
+    cmd: node
+    args:
+      - "/opt/agentflow-mcp-server/dist/index.js"
+    timeout: 300
+    bundled: false
+    description: "AgentFlow af_* platform tools: telegram dialogs/messages/send/whoami, memory."
+    env_keys:
+      - AGENTFLOW_API_KEY
+      - AGENTFLOW_BASE_URL
+  # Kwork inbox MCP — read/draft/reply on the owner's logged-in Kwork session.
+  - type: streamable_http
+    name: kwork_inbox
+    uri: "{{ kwork_inbox_mcp_url }}"
+    timeout: 300
+    bundled: false
+    description: "Kwork inbox: list_dialogs, get_dialog, send_message for the logged-in session."
+
+prompt: |
+  Triage the owner's inbox. Sources requested: {{ sources }}. Process at most
+  {{ max_messages }} new messages total.
+
+  STEP 1 — gather new messages.
+  {% if 'kwork' in sources and kwork_session_secret %}
+  - Kwork: call kwork_inbox list_dialogs with account_session_secret_key=
+    {{ kwork_session_secret }}, limit={{ max_messages }}. Keep dialogs with unread>0
+    or a fresh last message from them. For each, get_dialog to pull full context.
+  {% endif %}
+  {% if 'telegram' in sources %}
+  - Telegram: call af_telegram_dialogs (limit {{ max_messages }}). Keep chats with
+    unread>0. For each, af_telegram_messages to read the last few.
+  {% endif %}
+
+  STEP 2 — for each new message:
+  - Classify: lead / question / spam / fyi. Skip spam and fyi (just note them).
+  - af_recall the owner's tone + any prior context with this peer. If af_recall errors,
+    skip it (do NOT stop) and draft in a plain professional voice.
+  - Draft a short reply. No marketing fluff. No "free".
+
+  STEP 3 — APPROVAL (per the instructions): af_telegram_whoami → send each
+  "DRAFT →" preview to the owner's Saved Messages → poll for 'ok'/'отправь'/'send' or
+  an edit, up to {{ approval_wait_seconds }}s. Send nothing without approval.
+
+  STEP 4 — on approval, send the real reply to the original peer (Kwork send_message
+  or af_send_telegram_message). af_remember the sent reply with tags
+  ["inbox-triage", source].
+
+  FINAL — report a table: source | peer | class | drafted? | approved? | sent?. If a
+  source errored (auth_expired etc.), say which and that it was skipped.
+
+settings:
+  temperature: 0.3

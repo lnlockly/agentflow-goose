@@ -1,0 +1,188 @@
+{
+  "$comment": "Single source for the AgentFlow device use-case picker. Each entry maps a recipe in recipes/devices/<id>.yaml to a cabinet card. home=local|cloud, approval=outbound-gated, draft=not-yet-verified. params drive the picker form. Keep in sync with the .yaml metadata blocks and the TS copy in agentflow-landing/src/data/deviceUseCases.ts.",
+  "version": 1,
+  "recipes": [
+    {
+      "id": "l1-inbox-triage",
+      "home": "local",
+      "approval": true,
+      "draft": false,
+      "icon": "📨",
+      "category": "comm",
+      "title": "Inbox triage & reply-drafting",
+      "description": "Watch Kwork + Telegram, classify new messages, draft a reply in your voice, and pause for one-tap approval before sending.",
+      "params": [
+        { "key": "sources", "type": "string", "required": false, "default": "kwork,telegram", "label": "Sources (kwork, telegram)" },
+        { "key": "max_messages", "type": "number", "required": false, "default": 5, "label": "Max new messages per run" },
+        { "key": "approval_wait_seconds", "type": "number", "required": false, "default": 300, "label": "Approval wait (seconds)" }
+      ]
+    },
+    {
+      "id": "l2-freelance-autopilot",
+      "home": "local",
+      "approval": true,
+      "draft": true,
+      "icon": "🎯",
+      "category": "agentflow",
+      "title": "Freelance autopilot",
+      "description": "Scan Kwork/Upwork for gigs matching your skills, draft a tailored proposal per gig, submit on approval.",
+      "params": [
+        { "key": "skills", "type": "string", "required": true, "label": "Your skills / niche" },
+        { "key": "max_gigs", "type": "number", "required": false, "default": 5, "label": "Max gigs per run" },
+        { "key": "budget_min", "type": "number", "required": false, "default": 0, "label": "Skip gigs below budget" }
+      ]
+    },
+    {
+      "id": "l3-file-butler",
+      "home": "local",
+      "approval": true,
+      "draft": true,
+      "icon": "🗂",
+      "category": "system",
+      "title": "File butler",
+      "description": "Sort a folder, rename invoices by date+vendor, pull totals into a sheet, archive the rest.",
+      "params": [
+        { "key": "target_dir", "type": "string", "required": true, "label": "Folder to organize" },
+        { "key": "confirm", "type": "select", "required": false, "default": "false", "options": ["false", "true"], "label": "Execute after approval?" }
+      ]
+    },
+    {
+      "id": "l4-research-brief",
+      "home": "local",
+      "approval": false,
+      "draft": true,
+      "icon": "🔬",
+      "category": "research",
+      "title": "Research → brief",
+      "description": "Research a topic from the web plus your open tabs, write a 1-page brief with sources.",
+      "params": [
+        { "key": "topic", "type": "string", "required": true, "label": "What to research" },
+        { "key": "out_path", "type": "string", "required": false, "default": "~/agentflow-brief.md", "label": "Output file" }
+      ]
+    },
+    {
+      "id": "l5-repo-chores",
+      "home": "local",
+      "approval": true,
+      "draft": true,
+      "icon": "🛠",
+      "category": "developer",
+      "title": "Repo chores",
+      "description": "Bump deps, run tests, fix lint, open a PR on your local repos with your git creds.",
+      "params": [
+        { "key": "repo_path", "type": "string", "required": true, "label": "Local repo path" },
+        { "key": "chore", "type": "select", "required": true, "options": ["bump-deps", "fix-lint", "run-tests", "all"], "label": "Chore" },
+        { "key": "test_cmd", "type": "string", "required": false, "default": "", "label": "Test command (blank = auto)" }
+      ]
+    },
+    {
+      "id": "l6-social-crosspost",
+      "home": "local",
+      "approval": true,
+      "draft": true,
+      "icon": "📣",
+      "category": "comm",
+      "title": "Social cross-poster",
+      "description": "Draft and post to your logged-in socials, in your style, approval-gated.",
+      "params": [
+        { "key": "topic", "type": "string", "required": true, "label": "What to post about" },
+        { "key": "networks", "type": "string", "required": false, "default": "telegram", "label": "Networks (telegram, x, vk)" }
+      ]
+    },
+    {
+      "id": "c1-watcher-alerter",
+      "home": "cloud",
+      "approval": false,
+      "draft": true,
+      "icon": "👁",
+      "category": "research",
+      "title": "Watcher / alerter",
+      "description": "Monitor a site / API / price every N minutes; alert you in Telegram only when something changes.",
+      "params": [
+        { "key": "url", "type": "string", "required": true, "label": "Page / API to watch" },
+        { "key": "watch", "type": "string", "required": true, "label": "What to watch (price, status, count)" },
+        { "key": "telegram_chat", "type": "string", "required": false, "default": "", "label": "Alert chat (blank = Saved Messages)" },
+        { "key": "cron", "type": "string", "required": false, "default": "*/15 * * * *", "label": "Schedule (cron)" }
+      ]
+    },
+    {
+      "id": "c2-morning-digest",
+      "home": "cloud",
+      "approval": false,
+      "draft": false,
+      "icon": "🌅",
+      "category": "research",
+      "title": "Morning digest",
+      "description": "Scrape your niche sources overnight and send a tight Telegram brief at the time you choose.",
+      "params": [
+        { "key": "niche", "type": "string", "required": true, "label": "Your niche / focus" },
+        { "key": "sources", "type": "string", "required": false, "default": "https://news.ycombinator.com/,https://www.reddit.com/r/programming/top/?t=day", "label": "Source URLs (comma-separated)" },
+        { "key": "telegram_chat", "type": "string", "required": false, "default": "", "label": "Send to (blank = Saved Messages)" },
+        { "key": "max_items", "type": "number", "required": false, "default": 8, "label": "Max bullets" },
+        { "key": "cron", "type": "string", "required": false, "default": "0 8 * * *", "label": "Schedule (cron)" }
+      ]
+    },
+    {
+      "id": "c3-leadgen-outreach",
+      "home": "cloud",
+      "approval": true,
+      "draft": true,
+      "icon": "🎣",
+      "category": "agentflow",
+      "title": "24/7 lead-gen & outreach",
+      "description": "Scan target channels and warm-outreach on a schedule, even when your laptop is off.",
+      "params": [
+        { "key": "icp", "type": "string", "required": true, "label": "Ideal customer profile" },
+        { "key": "channels", "type": "string", "required": true, "label": "Channels to scan" },
+        { "key": "max_leads", "type": "number", "required": false, "default": 5, "label": "Max leads per run" },
+        { "key": "cron", "type": "string", "required": false, "default": "0 */4 * * *", "label": "Schedule (cron)" }
+      ]
+    },
+    {
+      "id": "c4-data-pipeline",
+      "home": "cloud",
+      "approval": false,
+      "draft": true,
+      "icon": "🔁",
+      "category": "developer",
+      "title": "Scheduled data pipeline",
+      "description": "Pull → transform → push to a Google Sheet / Notion / DB on cron.",
+      "params": [
+        { "key": "source", "type": "string", "required": true, "label": "Source endpoint / query" },
+        { "key": "sink", "type": "string", "required": true, "label": "Sink (sheet / db / notion)" },
+        { "key": "transform", "type": "string", "required": false, "default": "", "label": "Transform (optional)" },
+        { "key": "cron", "type": "string", "required": false, "default": "0 6 * * *", "label": "Schedule (cron)" }
+      ]
+    },
+    {
+      "id": "c5-content-factory",
+      "home": "cloud",
+      "approval": true,
+      "draft": true,
+      "icon": "✍️",
+      "category": "comm",
+      "title": "Content factory",
+      "description": "Generate and schedule posts / blog drafts on a cadence, queued for approval.",
+      "params": [
+        { "key": "theme", "type": "string", "required": true, "label": "Content theme" },
+        { "key": "format", "type": "select", "required": false, "default": "social-post", "options": ["social-post", "blog-draft", "thread"], "label": "Format" },
+        { "key": "cron", "type": "string", "required": false, "default": "0 9 * * 1,3,5", "label": "Schedule (cron)" }
+      ]
+    },
+    {
+      "id": "c6-concierge",
+      "home": "cloud",
+      "approval": true,
+      "draft": true,
+      "icon": "🛎",
+      "category": "comm",
+      "title": "Always-on concierge",
+      "description": "Answer FAQs and route tickets across your channels 24/7.",
+      "params": [
+        { "key": "channels", "type": "string", "required": true, "label": "Channels to watch" },
+        { "key": "faq_tag", "type": "string", "required": false, "default": "faq", "label": "FAQ memory tag" },
+        { "key": "cron", "type": "string", "required": false, "default": "*/5 * * * *", "label": "Poll interval (cron)" }
+      ]
+    }
+  ]
+}

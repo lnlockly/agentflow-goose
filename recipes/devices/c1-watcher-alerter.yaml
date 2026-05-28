@@ -1,0 +1,70 @@
+version: "1.0.0"
+title: "Watcher / alerter"
+description: "Monitor a site / API / price every N minutes; alert you in Telegram only when something changes."
+author:
+  contact: agentflow
+
+metadata:
+  id: c1-watcher-alerter
+  home: cloud
+  approval: false
+  draft: true
+  icon: "👁"
+  category: research
+  cron: "*/15 * * * *"
+
+instructions: |
+  DRAFT recipe. You watch a target on a schedule and alert the owner ONLY when it
+  changes. Silence is the default — no change, no message.
+
+  HARD RULES
+  - Compare against the last seen value (af_recall); alert only on a real diff.
+  - One concise Telegram alert per change: what changed, old → new, the URL.
+  - Never crash on a fetch error; note it and retry next tick.
+
+activities:
+  - "Fetch the watched target"
+  - "Compare against the last seen value"
+  - "Alert on change only"
+  - "Store the new value"
+
+parameters:
+  - key: url
+    input_type: string
+    requirement: required
+    description: "The page / API endpoint to watch."
+  - key: watch
+    input_type: string
+    requirement: required
+    description: "What to watch on the page (a price, a status, a count, a selector)."
+  - key: telegram_chat
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Where to alert. Empty = Saved Messages."
+extensions:
+  - type: builtin
+    name: developer
+    timeout: 300
+    bundled: true
+  - type: builtin
+    name: computercontroller
+    timeout: 300
+    bundled: true
+  - type: builtin
+    name: memory
+    timeout: 300
+    bundled: true
+  - type: stdio
+    name: agentflow
+    cmd: node
+    args: ["/opt/agentflow-mcp-server/dist/index.js"]
+    timeout: 300
+    bundled: false
+    env_keys: [AGENTFLOW_API_KEY, AGENTFLOW_BASE_URL]
+
+prompt: |
+  DRAFT. Fetch {{ url }}, read "{{ watch }}". af_recall tag "watch:{{ url }}" for the last
+  value. If it changed, send one Telegram alert (old → new, {{ url }}) to
+  {% if telegram_chat %}{{ telegram_chat }}{% else %}Saved Messages{% endif %} and
+  af_remember the new value. If unchanged, do nothing. On fetch error, note it and exit.

@@ -1,0 +1,63 @@
+version: "1.0.0"
+title: "Social cross-poster"
+description: "Draft and post to your logged-in socials on a schedule, in your style, approval-gated."
+author:
+  contact: agentflow
+
+metadata:
+  id: l6-social-crosspost
+  home: local
+  approval: true
+  draft: true
+  icon: "📣"
+  category: comm
+
+instructions: |
+  DRAFT recipe. You draft a post in the owner's style and cross-post it to their
+  logged-in socials — but only after the owner approves it (Saved-Messages 'ok'/edit,
+  same flow as l1-inbox-triage).
+
+  HARD RULES
+  - Draft once, approve once, then post to every target network.
+  - Match the owner's voice via af_recall of prior posts. No "free", no hashtag spam.
+  - Never post without approval.
+
+activities:
+  - "Recall the owner's posting style"
+  - "Draft a post for the topic"
+  - "Get one-tap approval"
+  - "Cross-post to each logged-in network"
+
+parameters:
+  - key: topic
+    input_type: string
+    requirement: required
+    description: "What to post about."
+  - key: networks
+    input_type: string
+    requirement: optional
+    default: "telegram"
+    description: "Comma-separated networks to post to (telegram, x, vk, ...)."
+
+extensions:
+  - type: builtin
+    name: computercontroller
+    timeout: 600
+    bundled: true
+    description: "Drive the owner's logged-in social sessions."
+  - type: builtin
+    name: memory
+    timeout: 300
+    bundled: true
+  - type: stdio
+    name: agentflow
+    cmd: node
+    args: ["/opt/agentflow-mcp-server/dist/index.js"]
+    timeout: 300
+    bundled: false
+    env_keys: [AGENTFLOW_API_KEY, AGENTFLOW_BASE_URL]
+
+prompt: |
+  DRAFT. Draft a post about "{{ topic }}" in the owner's style (af_recall prior posts),
+  send it for one-tap approval, and on approval cross-post to [{{ networks }}]. Report
+  drafted | approved | posted-per-network.

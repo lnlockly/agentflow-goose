@@ -1,0 +1,80 @@
+version: "1.0.0"
+title: "Freelance autopilot"
+description: "Scan Kwork/Upwork for gigs matching your skills, draft a tailored proposal per gig, and submit on approval."
+author:
+  contact: agentflow
+
+metadata:
+  id: l2-freelance-autopilot
+  home: local
+  approval: true
+  draft: true
+  icon: "🎯"
+  category: agentflow
+
+instructions: |
+  DRAFT recipe — fill in the gig sources and your win-history before relying on it.
+  You scan freelance boards on the owner's logged-in sessions, draft one tailored
+  proposal per matching gig, and NEVER submit without approval (Telegram round-trip,
+  same pattern as l1-inbox-triage).
+
+  HARD RULES
+  - Match strictly to {{ skills }}; skip gigs that don't fit. Quality over volume.
+  - af_recall past winning proposals to mirror what worked.
+  - Approval-gate every submission via Saved Messages 'ok'/edit, like l1-inbox-triage.
+
+activities:
+  - "Scan the gig feed for matches to the owner's skills"
+  - "Recall past winning proposals from memory"
+  - "Draft a tailored proposal per matching gig"
+  - "Send each draft for one-tap approval"
+  - "Submit the approved proposal"
+
+parameters:
+  - key: skills
+    input_type: string
+    requirement: required
+    description: "The owner's skills / niche to match gigs against."
+  - key: kwork_session_secret
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Logged-in Kwork session secret. Empty = browser-drive only."
+  - key: max_gigs
+    input_type: number
+    requirement: optional
+    default: 5
+    description: "Max gigs to draft proposals for per run."
+  - key: budget_min
+    input_type: number
+    requirement: optional
+    default: 0
+    description: "Skip gigs below this budget."
+
+extensions:
+  - type: builtin
+    name: computercontroller
+    timeout: 600
+    bundled: true
+    description: "Drive the owner's logged-in browser to read the gig feed."
+  - type: builtin
+    name: memory
+    timeout: 300
+    bundled: true
+  - type: stdio
+    name: agentflow
+    cmd: node
+    args: ["/opt/agentflow-mcp-server/dist/index.js"]
+    timeout: 300
+    bundled: false
+    env_keys: [AGENTFLOW_API_KEY, AGENTFLOW_BASE_URL]
+
+prompt: |
+  DRAFT. Scan freelance gigs for matches to {{ skills }} (budget >= {{ budget_min }}),
+  draft up to {{ max_gigs }} tailored proposals, and submit each only after the owner
+  approves it via the Saved-Messages one-tap flow (see l1-inbox-triage for the exact
+  approval round-trip).
+  {% if kwork_session_secret %}Use the logged-in Kwork session
+  (account_session_secret_key={{ kwork_session_secret }}) for Kwork gigs.{% else %}
+  No Kwork session given — drive the owner's logged-in browser instead.{% endif %}
+  Report matched | drafted | approved | submitted per gig.

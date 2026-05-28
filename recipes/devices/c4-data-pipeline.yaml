@@ -1,0 +1,55 @@
+version: "1.0.0"
+title: "Scheduled data pipeline"
+description: "Pull → transform → push to a Google Sheet / Notion / DB on cron. Hands-off recurring reporting."
+author:
+  contact: agentflow
+
+metadata:
+  id: c4-data-pipeline
+  home: cloud
+  approval: false
+  draft: true
+  icon: "🔁"
+  category: developer
+  cron: "0 6 * * *"
+
+instructions: |
+  DRAFT recipe. You run a recurring ETL: pull from a source, transform, push to a sink.
+  Idempotent and robust — a failed run should not corrupt the sink.
+
+  HARD RULES
+  - Validate the pulled data before pushing; on bad data, skip the push and report.
+  - Make the push idempotent (upsert by key), so re-runs don't duplicate rows.
+  - Secrets come from env, never hardcoded.
+
+activities:
+  - "Pull from the source"
+  - "Transform / validate"
+  - "Upsert into the sink"
+  - "Report row counts"
+
+parameters:
+  - key: source
+    input_type: string
+    requirement: required
+    description: "Source endpoint / query / file to pull from."
+  - key: sink
+    input_type: string
+    requirement: required
+    description: "Where to push (sheet id, Notion db, DB table)."
+  - key: transform
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Optional transform description (columns, filters, aggregations)."
+extensions:
+  - type: builtin
+    name: developer
+    timeout: 900
+    bundled: true
+    description: "http / shell for pull + push."
+
+prompt: |
+  DRAFT. Pull from {{ source }}, {% if transform %}apply: {{ transform }}, {% endif %}
+  validate, then upsert into {{ sink }} idempotently. Report pulled / pushed / skipped
+  row counts. On bad data, skip the push and say why.

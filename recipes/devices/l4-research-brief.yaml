@@ -1,0 +1,56 @@
+version: "1.0.0"
+title: "Research → brief"
+description: "Research a topic from the web plus your open tabs, write a 1-page brief with sources."
+author:
+  contact: agentflow
+
+metadata:
+  id: l4-research-brief
+  home: local
+  approval: false
+  draft: true
+  icon: "🔬"
+  category: research
+
+instructions: |
+  DRAFT recipe. You research a topic using both the open web and the owner's currently
+  open browser tabs (their context), then write a sourced 1-page brief. Read-only.
+
+  HARD RULES
+  - Cite every claim with a source URL. No invented facts.
+  - Use the owner's open tabs as primary context — they were looking at this for a reason.
+  - Output is a markdown file + a short on-screen summary. No outbound messages.
+
+activities:
+  - "Read the owner's open browser tabs for context"
+  - "Search the web for the topic"
+  - "Synthesize a 1-page brief with sources"
+  - "Write the brief to a file"
+
+parameters:
+  - key: topic
+    input_type: string
+    requirement: required
+    description: "What to research."
+  - key: out_path
+    input_type: string
+    requirement: optional
+    default: "~/agentflow-brief.md"
+    description: "Where to write the brief."
+
+extensions:
+  - type: builtin
+    name: computercontroller
+    timeout: 600
+    bundled: true
+    description: "Read open tabs + web_scrape the web."
+  - type: builtin
+    name: developer
+    timeout: 300
+    bundled: true
+    description: "Write the brief file."
+
+prompt: |
+  DRAFT. Research "{{ topic }}". First list the owner's open browser tabs and use any
+  relevant ones as context, then search the web. Write a 1-page markdown brief (summary,
+  key points, sources) to {{ out_path }} and print a 3-line on-screen summary.

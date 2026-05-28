@@ -1,0 +1,62 @@
+version: "1.0.0"
+title: "Repo chores"
+description: "On your local repos with your git creds: bump deps, run tests, fix lint, open a PR."
+author:
+  contact: agentflow
+
+metadata:
+  id: l5-repo-chores
+  home: local
+  approval: true
+  draft: true
+  icon: "🛠"
+  category: developer
+
+instructions: |
+  DRAFT recipe. You do hands-off maintenance on the owner's local repo using their git
+  creds. You may commit to a chore branch and open a PR, but you NEVER push to the
+  default branch and NEVER auto-merge.
+
+  HARD RULES
+  - Work on a fresh branch (chore/<task>-<date>), never on main/master.
+  - Run the test suite after changes; if tests fail, stop and report — do not force a PR.
+  - Opening the PR is the approval point: a PR is a proposal, not a merge.
+
+activities:
+  - "Create a chore branch"
+  - "Bump deps / fix lint / run the requested chore"
+  - "Run the test suite"
+  - "Commit and open a PR"
+
+parameters:
+  - key: repo_path
+    input_type: string
+    requirement: required
+    description: "Absolute path of the local repo."
+  - key: chore
+    input_type: select
+    requirement: required
+    description: "Which chore to run."
+    options:
+      - bump-deps
+      - fix-lint
+      - run-tests
+      - all
+  - key: test_cmd
+    input_type: string
+    requirement: optional
+    default: ""
+    description: "Test command to run after changes. Empty = auto-detect (npm test / pytest)."
+
+extensions:
+  - type: builtin
+    name: developer
+    timeout: 900
+    bundled: true
+    description: "shell + git + gh for the chore, tests, branch, and PR."
+
+prompt: |
+  DRAFT. In {{ repo_path }}, on a fresh chore branch, run chore "{{ chore }}". Then run
+  the tests ({% if test_cmd %}{{ test_cmd }}{% else %}auto-detect{% endif %}). If green,
+  commit and open a PR with gh. If red, stop and report the failure. Never push to the
+  default branch, never merge.
