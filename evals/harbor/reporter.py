@@ -79,20 +79,25 @@ def job_token_totals(job: LoadedJob) -> tuple[int, int, float]:
 
 
 def trial_status(trial: TrialResult) -> str:
-    """Classify a trial as pass / partial / fail / timeout / error / no-reward."""
+    """Classify a trial as pass / partial / fail / timeout / error / no-reward.
+
+    Reward wins over exception_info: harbor can record an AgentTimeoutError or
+    other post-run exception even when the verifier already scored the trial as
+    a pass (e.g. the agent finished the work then the harness crashed during
+    teardown, or the agent timed out after writing the correct answer). If we
+    got points, we got points — count them.
+    """
+    reward = trial_reward(trial)
+    if reward is not None and reward > 0:
+        return "pass" if reward >= 1.0 else "partial"
     err = trial_error(trial)
     if err is not None:
         error_type, _ = err
         if "timeout" in error_type.lower():
             return "timeout"
         return "error"
-    reward = trial_reward(trial)
     if reward is None:
         return "no-reward"
-    if reward >= 1.0:
-        return "pass"
-    if reward > 0:
-        return "partial"
     return "fail"
 
 
@@ -105,7 +110,7 @@ def job_model(job: LoadedJob) -> str:
     for trial in job.results:
         info = trial.agent_info
         if info and info.model_info and info.model_info.name:
-            return info.model_info.name
+            return info.model_info.name.rsplit("/", 1)[-1]
     return "?"
 
 

@@ -3,19 +3,39 @@
 A small command-line tool for running and comparing terminal-bench-style
 benchmarks against different agent harnesses, models, and goose builds.
 
-## What's here
+## Current results
+
+Latest `cmd.py list` snapshot across the runs in `runs/`. All `*-full` runs
+cover the full `terminal-bench/terminal-bench-2` dataset (89 tasks);
+`pass/fail/err/tout` is the per-status breakdown.
 
 ```
-evals/harbor/
-  cmd.py                   entry point: argparse + dispatch
-  runner.py                `run` subcommand: build harbor config, launch
-  agent.py                 GooseBinaryAgent (loaded by harbor's worker)
-  reporter.py              list/show/task/compare/rm/pull subcommands
-  config_template.yaml     goose config template; --extensions toggles enabled
-  .agents/skills/          skills for delegating per-task deep-dives
-  runs/                    per-job outputs (gitignored)
-  .env                     secrets (gitignored)
+job_name                            model                         rate   wall      in     out     cost  pass/fail/err/tout
+---------------------------------------------------------------------------------------------------------------------------
+claude-sonnet46-full                claude-sonnet-4-6            55.1%   1.1h  102.3M    1.2M   $42.83          49/23/1/16
+goose-1.30-sonnet46-full            claude-sonnet-4-6            50.6%   1.2h    2.4M       -        -          45/24/2/18
+goose-sonnet46-full-code-mode       claude-sonnet-4-6            57.3%   1.1h   63.3M    1.1M  $206.43          51/20/2/16
+nemotron-full                       nemotron-3-nano-30b-a3b       1.1%  34.4m    9.5M    2.2M        -           1/64/2/22
+opencode-sonnet46-full              claude-sonnet-4-6            52.8%   1.2h  111.5M    1.6M   $70.30          47/23/0/19
+pi-sonnet46-full                    claude-sonnet-4-6            47.2%   1.2h  114.4M    1.8M   $74.82          42/25/1/21
+sonnet46-dev-only                   claude-sonnet-4-6            48.3%   1.1h   70.6M    1.2M  $229.19          43/25/2/19
+sonnet46-full                       claude-sonnet-4-6            50.6%   1.1h   62.4M       -        -          45/21/3/20
+sonnet46-sum_codem                  claude-sonnet-4-6            57.3%   1.1h   78.1M    1.4M  $254.53          51/23/2/13
+sonnet46-summon-full                claude-sonnet-4-6            55.1%   1.1h   67.2M    1.0M  $217.28          49/19/3/18
 ```
+
+Quick read:
+
+- `goose-sonnet46-full-code-mode` and `sonnet46-sum_codem` (both
+  `developer,todo,codemode` / `summon+codemode`) lead at **57.3%**.
+- Stock goose (`sonnet46-full`, `developer,todo`) lands at **50.6%**, roughly
+  on par with `opencode` (52.8%) and ahead of `pi` (47.2%) on the same model.
+- `claude-sonnet46-full` at **55.1%** is harbor's vanilla `Goose` harness
+  (curl-installed) — useful sanity check that our `GooseBinaryAgent` adapter
+  isn't leaving points on the floor.
+- `nemotron-full` (openrouter nemotron-3-nano-30b-a3b) finishes the dataset
+  in 34 minutes but only solves 1 task — small open model, much faster wall
+  clock, much lower ceiling.
 
 ## Setup
 
@@ -34,6 +54,8 @@ DATABRICKS_HOST=https://...
 DATABRICKS_TOKEN=...
 OPENAI_API_KEY=sk-...
 ```
+
+alternatively, you can just export them in the session where you run the benchmark
 
 ## Running a goose benchmark
 
@@ -207,22 +229,3 @@ it with the two job names and a task name and it will read both
 trajectories, the task spec, and the verifier output, then explain the
 mechanism behind the divergence.
 
-## How the goose adapter works
-
-`cmd.py run` builds a harbor config that:
-
-- Points harbor at `agent:GooseBinaryAgent` (loaded from `agent.py`; harbor's
-  worker imports it with `PYTHONPATH=evals/harbor/`).
-- Forwards provider secrets from the host shell into the task container via
-  harbor's `environment.env`.
-- Renders `config_template.yaml` with the requested extensions' `enabled`
-  flipped to `true`, and uploads the result as the container's
-  `~/.config/goose/config.yaml`.
-- Uploads the goose binary, symlinks it on `PATH`, runs the recipe, captures
-  stream-json output to `goose.txt`, and afterwards extracts input/output
-  token counts and cost from the `complete` event for harbor's per-trial
-  metrics.
-
-Per-trial artifacts under `runs/<job>/<task>.<attempt>/` include the
-agent's stream-json log, the verifier's stdout/stderr, and a harbor
-`result.json` with the structured outcome.
