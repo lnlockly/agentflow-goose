@@ -609,9 +609,6 @@ const SessionListView: React.FC<SessionListViewProps> = React.memo(
     );
 
     const handleImportClick = useCallback(async () => {
-      // Prefer the native picker: it can show hidden directories (so users can
-      // reach `~/.claude/projects/...` or `~/.pi/agent/sessions/...`) and we
-      // can filter for .json/.jsonl in one place.
       const native = window.electron?.selectImportSessionFile;
       if (typeof native === 'function') {
         try {
