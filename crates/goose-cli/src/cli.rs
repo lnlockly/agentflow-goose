@@ -973,19 +973,13 @@ enum Command {
     /// Launch the goose terminal UI (TUI)
     #[command(
         about = "Launch the goose terminal UI",
-        long_about = "Launch the goose terminal UI (the @aaif/goose npm package).\n\
+        long_about = "Launch the native goose terminal UI.\n\
                       \n\
-                      Resolution order:\n  \
-                      1. GOOSE_TUI_SCRIPT, if set to an existing dist/tui.js\n  \
-                      2. A local checkout's ui/text/dist/tui.js (dev workflow)\n  \
-                      3. `npx --yes --package <spec> -- goose-tui` (deployed installs)\n\
-                      \n\
-                      Override the npm spec via GOOSE_TUI_NPM_SPEC (default: @aaif/goose@latest).\n\
-                      Local script mode requires `node` on PATH; npx mode requires `npx` on PATH.\n\
-                      Any extra arguments are passed through to the TUI."
+                      The TUI starts an ACP-backed goose session with the built-in developer extension enabled.\n\
+                      Use /help inside the TUI for commands."
     )]
     Tui {
-        /// Arguments forwarded to the TUI
+        /// Reserved for future TUI arguments
         #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
         args: Vec<String>,
     },
@@ -2131,7 +2125,7 @@ pub async fn cli() -> anyhow::Result<()> {
         Some(Command::Recipe { command }) => handle_recipe_subcommand(command),
         Some(Command::Plugin { command }) => handle_plugin_subcommand(command),
         Some(Command::Term { command }) => handle_term_subcommand(command).await,
-        Some(Command::Tui { args }) => crate::commands::tui::handle_tui(args),
+        Some(Command::Tui { args }) => crate::commands::tui::handle_tui(args).await,
         #[cfg(feature = "local-inference")]
         Some(Command::LocalModels { command }) => handle_local_models_command(command).await,
         Some(Command::Review {
