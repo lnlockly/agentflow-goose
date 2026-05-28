@@ -246,7 +246,11 @@ impl Agent {
 
     #[tracing::instrument(
         skip(provider, session_id, system_prompt, messages, tools, toolshim_tools),
-        fields(session.id = %session_id)
+        fields(
+            session.id = %session_id,
+            gen_ai.provider = %provider.get_name(),
+            gen_ai.request.model = %provider.get_model_config().model_name,
+        )
     )]
     pub(crate) async fn stream_response_from_provider(
         provider: Arc<dyn Provider>,
@@ -280,6 +284,12 @@ impl Agent {
         // Capture errors during stream creation and return them as part of the stream
         // so they can be handled by the existing error handling logic in the agent
         let model_config = provider.get_model_config();
+        tracing::info!(
+            session.id = %session_id,
+            gen_ai.provider = %provider.get_name(),
+            gen_ai.request.model = %model_config.model_name,
+            "llm: stream call",
+        );
         debug!("WAITING_LLM_STREAM_START");
         let stream_result = provider
             .stream(

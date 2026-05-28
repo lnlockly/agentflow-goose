@@ -283,6 +283,13 @@ pub async fn reply(
             }
         };
 
+        tracing::info!(
+            session.id = %session_id,
+            session.provider = ?session.provider_name,
+            session.model = ?session.model_config.as_ref().map(|m| &m.model_name),
+            "reply: incoming request",
+        );
+
         let session_config = SessionConfig {
             id: session_id.clone(),
             schedule_id: session.schedule_id.clone(),
@@ -353,6 +360,14 @@ pub async fn reply(
                             all_messages.push(message.clone());
 
                             let token_state = get_token_state(state.session_manager(), &session_id).await;
+
+                            tracing::info!(
+                                session.id = %session_id,
+                                out.provider = ?message.metadata.inference.as_ref().map(|i| &i.provider),
+                                out.requested_model = ?message.metadata.inference.as_ref().map(|i| &i.requested_model),
+                                out.resolved_model = ?message.metadata.inference.as_ref().and_then(|i| i.resolved_model.as_ref()),
+                                "reply: emit message",
+                            );
 
                             stream_event(MessageEvent::Message { message, token_state }, &tx, &cancel_token).await;
                         }

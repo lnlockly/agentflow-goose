@@ -1588,16 +1588,16 @@ impl Agent {
         let provider = self.provider().await?;
         let provider_name = provider.get_name().to_string();
         let requested_model = provider.get_model_config().model_name;
-        let inference = provider
+        let resolved_model = provider
             .fetch_model_info(&requested_model)
             .await
             .ok()
-            .and_then(|model_info| model_info.resolved_model)
-            .map(|resolved_model| InferenceMetadata {
-                provider: provider_name,
-                requested_model,
-                resolved_model: Some(resolved_model),
-            });
+            .and_then(|model_info| model_info.resolved_model);
+        let inference = Some(InferenceMetadata {
+            provider: provider_name,
+            requested_model,
+            resolved_model,
+        });
         let session_manager = self.config.session_manager.clone();
         let session_id = session_config.id.clone();
         if !self.config.disable_session_naming {
@@ -2320,6 +2320,14 @@ impl Agent {
         let mut current_provider = self.provider.lock().await;
         *current_provider = Some(provider);
 
+        tracing::info!(
+            session.id = %session_id,
+            provider = %provider_name,
+            model = %model_config.model_name,
+            source = "explicit_update",
+            "agent: provider resolved",
+        );
+
         self.config
             .session_manager
             .clone()
@@ -2359,12 +2367,22 @@ impl Agent {
     pub async fn restore_provider_from_session(&self, session: &Session) -> Result<bool> {
         let config = Config::global();
 
+        let provider_source = if session.provider_name.is_some() {
+            "session"
+        } else {
+            "config_default"
+        };
         let provider_name = session
             .provider_name
             .clone()
             .or_else(|| config.get_goose_provider().ok())
             .ok_or_else(|| anyhow!("Could not configure agent: missing provider"))?;
 
+        let model_source = if session.model_config.is_some() {
+            "session"
+        } else {
+            "config_default"
+        };
         let model_config = match session.model_config.clone() {
             Some(saved_config) => saved_config,
             None => {
@@ -2377,6 +2395,15 @@ impl Agent {
                     .with_canonical_limits(&provider_name)
             }
         };
+
+        tracing::info!(
+            session.id = %session.id,
+            provider = %provider_name,
+            model = %model_config.model_name,
+            provider_source = %provider_source,
+            model_source = %model_source,
+            "agent: restore_provider_from_session resolved",
+        );
 
         let extensions =
             EnabledExtensionsState::extensions_or_default(Some(&session.extension_data), config);

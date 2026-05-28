@@ -3035,6 +3035,15 @@ impl GooseAcpAgent {
         let sid = sid_short(&session_id);
         let t_start = std::time::Instant::now();
 
+        if let Ok(session) = self.session_manager.get_session(&session_id, false).await {
+            tracing::info!(
+                session.id = %session_id,
+                session.provider = ?session.provider_name,
+                session.model = ?session.model_config.as_ref().map(|m| &m.model_name),
+                "acp on_prompt: incoming request",
+            );
+        }
+
         let cancel_token = CancellationToken::new();
         let agent = self
             .get_session_agent(&session_id, Some(cancel_token.clone()))
@@ -3112,6 +3121,13 @@ impl GooseAcpAgent {
 
             match event {
                 Ok(crate::agents::AgentEvent::Message(message)) => {
+                    tracing::info!(
+                        session.id = %session_id,
+                        out.provider = ?message.metadata.inference.as_ref().map(|i| &i.provider),
+                        out.requested_model = ?message.metadata.inference.as_ref().map(|i| &i.requested_model),
+                        out.resolved_model = ?message.metadata.inference.as_ref().and_then(|i| i.resolved_model.as_ref()),
+                        "acp on_prompt: emit message",
+                    );
                     // Agent persists messages via session_manager.add_message() internally.
                     let stored_message_id = message.id.clone();
 
