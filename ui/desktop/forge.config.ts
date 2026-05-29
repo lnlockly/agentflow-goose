@@ -7,7 +7,7 @@ const isLinuxVulkanBuild = process.env.GOOSE_DESKTOP_LINUX_VARIANT === 'vulkan';
 let cfg = {
   asar: true,
   appBundleId: 'com.agentflow.desktop',
-  extraResource: ['src/bin', 'src/images'],
+  extraResource: ['src/bin', 'src/images', 'resources/agentflow-mcp'],
   icon: 'src/images/icon',
   // Windows specific configuration
   win32: {

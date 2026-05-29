@@ -41,15 +41,16 @@ export function flowGatewayEnvFromAuth(): Record<string, string> | null {
 /**
  * Ensure the AgentFlow engine extensions are enabled in goose config before
  * goosed starts: computercontroller (builtin, always) + af_* MCP (only when its
- * server entrypoint resolves). af_* is sourced from `AGENTFLOW_MCP_PATH` or the
- * packaged resource path; absent → af_* skipped (computercontroller still on).
- * Returns the keys added. Safe to call every launch (idempotent merge).
+ * server entrypoint resolves). af_* resolves from `AGENTFLOW_MCP_PATH` (dev) or
+ * the vendored single-file bundle shipped as a forge extraResource
+ * (`<resourcesPath>/agentflow-mcp/server.cjs`); absent → af_* skipped
+ * (computercontroller still on). Returns the keys added; idempotent.
  */
 export function ensureAgentflowEngineExtensions(resourcesPath?: string): string[] {
   const auth = loadAuth();
   const candidates = [
     process.env.AGENTFLOW_MCP_PATH,
-    resourcesPath ? `${resourcesPath}/agentflow-mcp-server/dist/index.js` : undefined,
+    resourcesPath ? `${resourcesPath}/agentflow-mcp/server.cjs` : undefined,
   ].filter((p): p is string => !!p);
   const mcpServerPath = candidates.find((p) => fsSync.existsSync(p)) ?? null;
   return ensureAgentflowExtensions({
