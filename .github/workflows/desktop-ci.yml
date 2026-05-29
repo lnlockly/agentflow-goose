@@ -1,0 +1,61 @@
+# Build gate for AgentFlow Desktop (ui/desktop).
+#
+# Proves the rebranded + device-bridge Electron app actually typechecks, its
+# unit tests pass, and it packages — before a PR touching ui/desktop merges.
+# Runs on the ff-france self-hosted runner (lnlockly/* convention — never
+# ubuntu-latest, which is billing-blocked). The toolchain is the repo's own
+# hermit pin (node 24.10.0 + pnpm 10.30.3), so it matches package.json engines.
+name: Desktop CI
+
+on:
+  pull_request:
+    paths:
+      - 'ui/desktop/**'
+      - '.github/workflows/desktop-ci.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: desktop-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-gate:
+    name: typecheck + test + package
+    runs-on: [self-hosted, ff-france]
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Activate hermit toolchain (node 24 + pnpm)
+        run: |
+          source ./bin/activate-hermit
+          node --version
+          pnpm --version
+
+      - name: Install deps (ui/desktop workspace)
+        working-directory: ui/desktop
+        run: |
+          source ../../bin/activate-hermit
+          pnpm install --no-frozen-lockfile
+
+      - name: Typecheck
+        working-directory: ui/desktop
+        run: |
+          source ../../bin/activate-hermit
+          pnpm run typecheck
+
+      - name: Unit tests
+        working-directory: ui/desktop
+        run: |
+          source ../../bin/activate-hermit
+          pnpm run test:run
+
+      - name: Package (electron-forge, unsigned)
+        working-directory: ui/desktop
+        # No APPLE_TEAM_ID / WINDOWS_CERTIFICATE_FILE in env → forge skips
+        # signing + notarization (see forge.config.ts). This validates the
+        # rebrand (productName / bundle id / icons / makers) + the vite build.
+        run: |
+          source ../../bin/activate-hermit
+          pnpm run package
