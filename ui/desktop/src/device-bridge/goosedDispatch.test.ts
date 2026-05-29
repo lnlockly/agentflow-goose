@@ -35,6 +35,9 @@ describe('runTaskOnGoosed', () => {
       if (url.endsWith('/agent/start')) {
         return new Response(JSON.stringify({ id: 'sess-1' }), { status: 200 });
       }
+      if (url.endsWith('/agent/update_provider')) {
+        return new Response('', { status: 200 });
+      }
       // /reply
       return sseResponse([
         'data: {"type":"Message","message":{"role":"assistant","content":[{"type":"text","text":"Hello "}]}}\n\n',
@@ -59,7 +62,8 @@ describe('runTaskOnGoosed', () => {
     expect(result.iterations).toBe(2);
     expect(progress).toEqual(['Hello ', 'world']);
     expect(calls[0]).toBe('POST http://127.0.0.1:9000/agent/start');
-    expect(calls[1]).toBe('POST http://127.0.0.1:9000/reply');
+    expect(calls[1]).toBe('POST http://127.0.0.1:9000/agent/update_provider');
+    expect(calls[2]).toBe('POST http://127.0.0.1:9000/reply');
   });
 
   it('reuses a provided session id (skips agent/start)', async () => {
