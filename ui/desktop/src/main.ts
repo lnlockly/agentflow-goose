@@ -50,6 +50,7 @@ import './utils/recipeHash';
 import { Client } from './api/client';
 import { GooseApp } from './api';
 import * as mesh from './mesh';
+import { startDeviceBridge, type DeviceBridge } from './device-bridge';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { BLOCKED_PROTOCOLS, WEB_PROTOCOLS } from './utils/urlSecurity';
 import { buildCSP } from './utils/csp';
@@ -57,6 +58,26 @@ import { buildCSP } from './utils/csp';
 function shouldSetupUpdater(): boolean {
   // Setup updater if either the flag is enabled OR dev updates are enabled
   return UPDATES_ENABLED || process.env.ENABLE_DEV_UPDATES === 'true';
+}
+
+// Device-bridge (Mode B): the website drives the local goosed exactly like the
+// retired agentflow-computer-mcp daemon. Gated behind FF_DEVICE_BRIDGE=1 until a
+// packaged cabinet-dispatch run verifies it end-to-end (plan P2/P5 cutover).
+let deviceBridge: DeviceBridge | null = null;
+let activeGoosed: { baseUrl: string; secret: string; workingDir: string } | null = null;
+
+function ensureDeviceBridge(): void {
+  if (process.env.FF_DEVICE_BRIDGE !== '1' || deviceBridge) return;
+  deviceBridge = startDeviceBridge({
+    version: app.getVersion(),
+    goosed: () => activeGoosed,
+    log: (level, msg) => {
+      const line = `[device-bridge] ${msg}`;
+      if (level === 'error') log.error(line);
+      else if (level === 'warn') log.warn(line);
+      else log.info(line);
+    },
+  });
 }
 
 // =======================================================================
@@ -843,8 +864,17 @@ const createChat = async (app: App, options: CreateChatOptions = {}) => {
     pinnedCertFingerprint = goosedResult.certFingerprint;
   }
 
+  // Track the most-recent local goosed so the device bridge can drive it.
+  activeGoosed = {
+    baseUrl: goosedResult.baseUrl,
+    secret: serverSecret,
+    workingDir: goosedResult.workingDir,
+  };
+  ensureDeviceBridge();
+
   app.on('will-quit', async () => {
     log.info('App quitting, terminating goosed server');
+    deviceBridge?.stop();
     await goosedResult.cleanup();
   });
 
