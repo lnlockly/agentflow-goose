@@ -50,7 +50,12 @@ import './utils/recipeHash';
 import { Client } from './api/client';
 import { GooseApp } from './api';
 import * as mesh from './mesh';
-import { startDeviceBridge, flowGatewayEnvFromAuth, type DeviceBridge } from './device-bridge';
+import {
+  startDeviceBridge,
+  flowGatewayEnvFromAuth,
+  ensureAgentflowEngineExtensions,
+  type DeviceBridge,
+} from './device-bridge';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { BLOCKED_PROTOCOLS, WEB_PROTOCOLS } from './utils/urlSecurity';
 import { buildCSP } from './utils/csp';
@@ -851,6 +856,20 @@ const createChat = async (app: App, options: CreateChatOptions = {}) => {
   const flowEnv =
     process.env.FF_FLOW_LLM === '1' ? flowGatewayEnvFromAuth() : null;
   if (flowEnv) log.info('[engine] routing goosed through the AgentFlow flow gateway');
+
+  // Engine extensions (P3.5): ensure computercontroller (GUI) + af_* MCP are
+  // enabled in goose config before goosed starts. Merge-only (never clobbers a
+  // user's config.yaml). Same gate as the flow LLM wiring.
+  if (process.env.FF_FLOW_LLM === '1') {
+    try {
+      const added = ensureAgentflowEngineExtensions(
+        app.isPackaged ? process.resourcesPath : undefined
+      );
+      if (added.length) log.info(`[engine] enabled goose extensions: ${added.join(', ')}`);
+    } catch (e) {
+      log.warn(`[engine] failed to ensure extensions: ${String(e)}`);
+    }
+  }
 
   const goosedResult = await startGoosed({
     serverSecret,

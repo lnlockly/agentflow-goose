@@ -21,8 +21,11 @@ export { loadAuth, saveAuth, isEnrolled, buildConnectHeaders, apiBase } from './
 export { runTaskOnGoosed, parseSseChunk } from './goosedDispatch';
 export { fetchQueuedTasks } from './queuedTasks';
 export * from './engineConfig';
+export * from './extensionsSetup';
 
 import { buildFlowGatewayEnv } from './engineConfig';
+import { ensureAgentflowExtensions } from './extensionsSetup';
+import fsSync from 'node:fs';
 
 /**
  * Resolve the flow-gateway env from the enrolled auth.json, or null when the
@@ -33,6 +36,27 @@ export function flowGatewayEnvFromAuth(): Record<string, string> | null {
   const auth = loadAuth();
   if (!auth || !auth.apiKey) return null;
   return buildFlowGatewayEnv({ apiKey: auth.apiKey });
+}
+
+/**
+ * Ensure the AgentFlow engine extensions are enabled in goose config before
+ * goosed starts: computercontroller (builtin, always) + af_* MCP (only when its
+ * server entrypoint resolves). af_* is sourced from `AGENTFLOW_MCP_PATH` or the
+ * packaged resource path; absent → af_* skipped (computercontroller still on).
+ * Returns the keys added. Safe to call every launch (idempotent merge).
+ */
+export function ensureAgentflowEngineExtensions(resourcesPath?: string): string[] {
+  const auth = loadAuth();
+  const candidates = [
+    process.env.AGENTFLOW_MCP_PATH,
+    resourcesPath ? `${resourcesPath}/agentflow-mcp-server/dist/index.js` : undefined,
+  ].filter((p): p is string => !!p);
+  const mcpServerPath = candidates.find((p) => fsSync.existsSync(p)) ?? null;
+  return ensureAgentflowExtensions({
+    apiKey: auth?.apiKey,
+    deviceId: auth?.deviceId,
+    mcpServerPath,
+  });
 }
 
 /** Resolves the live goosed base URL + secret each time a task runs. */
