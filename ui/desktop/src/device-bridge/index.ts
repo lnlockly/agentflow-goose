@@ -20,6 +20,20 @@ export * from './types';
 export { loadAuth, saveAuth, isEnrolled, buildConnectHeaders, apiBase } from './auth';
 export { runTaskOnGoosed, parseSseChunk } from './goosedDispatch';
 export { fetchQueuedTasks } from './queuedTasks';
+export * from './engineConfig';
+
+import { buildFlowGatewayEnv } from './engineConfig';
+
+/**
+ * Resolve the flow-gateway env from the enrolled auth.json, or null when the
+ * machine has no AgentFlow key (keyless standalone → keep the user's own
+ * provider). Merge the result into the `env` passed to startGoosed.
+ */
+export function flowGatewayEnvFromAuth(): Record<string, string> | null {
+  const auth = loadAuth();
+  if (!auth || !auth.apiKey) return null;
+  return buildFlowGatewayEnv({ apiKey: auth.apiKey });
+}
 
 /** Resolves the live goosed base URL + secret each time a task runs. */
 export type GoosedProvider = () => { baseUrl: string; secret: string; workingDir: string } | null;

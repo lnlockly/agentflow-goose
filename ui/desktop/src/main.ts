@@ -50,7 +50,7 @@ import './utils/recipeHash';
 import { Client } from './api/client';
 import { GooseApp } from './api';
 import * as mesh from './mesh';
-import { startDeviceBridge, type DeviceBridge } from './device-bridge';
+import { startDeviceBridge, flowGatewayEnvFromAuth, type DeviceBridge } from './device-bridge';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { BLOCKED_PROTOCOLS, WEB_PROTOCOLS } from './utils/urlSecurity';
 import { buildCSP } from './utils/csp';
@@ -844,11 +844,20 @@ const createChat = async (app: App, options: CreateChatOptions = {}) => {
     pinnedCertFingerprint = null;
   }
 
+  // Engine wiring (P3): route the local goosed through the AgentFlow `flow`
+  // gateway when the machine has an AgentFlow key. Gated FF_FLOW_LLM=1 until a
+  // packaged build verifies it against the gateway; a keyless standalone launch
+  // keeps the user's own provider (the gateway requires an af_live_* key).
+  const flowEnv =
+    process.env.FF_FLOW_LLM === '1' ? flowGatewayEnvFromAuth() : null;
+  if (flowEnv) log.info('[engine] routing goosed through the AgentFlow flow gateway');
+
   const goosedResult = await startGoosed({
     serverSecret,
     dir: dir || os.homedir(),
     env: {
       GOOSE_PATH_ROOT: appConfig.GOOSE_PATH_ROOT as string | undefined,
+      ...(flowEnv ?? {}),
     },
     externalGoosed: settings.externalGoosed,
     isPackaged: app.isPackaged,
