@@ -497,7 +497,7 @@ export default function CreateEditRecipeModal({
                   ? intl.formatMessage(i18n.createSubtitle)
                   : intl.formatMessage(i18n.editSubtitle)}{' '}
                 <a
-                  href="https://goose-docs.ai/docs/guides/recipes/"
+                  href="https://docs.agentflow.website/docs/guides/recipes/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-blue-500 hover:text-blue-600 hover:underline"
