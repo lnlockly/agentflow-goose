@@ -62,7 +62,35 @@ export async function startSession(
   }
   const session = (await res.json()) as { id?: string };
   if (!session?.id) throw new Error('agent/start returned no session id');
+  // goosed's /reply rejects with "Provider not set" unless the session's
+  // provider is initialised — env GOOSE_PROVIDER/GOOSE_MODEL alone is not
+  // enough (verified live 2026-05-30). The desktop chat does this via
+  // updateAgentProvider; the headless dispatch path must too. Provider/model
+  // come from the goosed env (the flow gateway), never hardcoded to a concrete
+  // model — GOOSE_MODEL stays the `flow` alias.
+  await setSessionProvider(baseUrl, secret, session.id, fetchImpl, signal);
   return session.id;
+}
+
+/** Initialise the session's provider/model (from the goosed env) so /reply works. */
+export async function setSessionProvider(
+  baseUrl: string,
+  secret: string,
+  sessionId: string,
+  fetchImpl: FetchLike = fetch,
+  signal?: AbortSignal
+): Promise<void> {
+  const provider = process.env.GOOSE_PROVIDER || 'openai';
+  const model = process.env.GOOSE_MODEL || 'flow';
+  const res = await fetchImpl(`${baseUrl}/agent/update_provider`, {
+    method: 'POST',
+    headers: headers(secret),
+    body: JSON.stringify({ session_id: sessionId, provider, model }),
+    signal,
+  });
+  if (!res.ok) {
+    throw new Error(`agent/update_provider failed: ${res.status} ${await safeText(res)}`);
+  }
 }
 
 async function safeText(res: { text: () => Promise<string> }): Promise<string> {
