@@ -27,8 +27,9 @@
   --color-white: #ffffff;
   --color-black: #000000;
 
-  --color-block-teal: #13bbaf;
-  --color-block-orange: #ff4f00;
+  /* AgentFlow brand accent (lime) — replaces upstream Goose teal/orange */
+  --color-block-teal: #a6f25c;
+  --color-block-orange: #d4ff00;
 
   --color-neutral-50: #f4f6f7;
   --color-neutral-100: #e3e6ea;
