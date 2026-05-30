@@ -806,6 +806,12 @@
   "defaultProviderSetupForm.showOptions": {
     "defaultMessage": "Show {count} options"
   },
+  "detectedProviders.foundOnMachine": {
+    "defaultMessage": "Found on your computer"
+  },
+  "detectedProviders.use": {
+    "defaultMessage": "Use this"
+  },
   "diagnosticsModal.attachHint": {
     "defaultMessage": "If you file a bug, consider attaching the diagnostics report to it."
   },
