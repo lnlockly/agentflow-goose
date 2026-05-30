@@ -1,10 +1,14 @@
 # Build gate for AgentFlow Desktop (ui/desktop).
 #
-# Proves the rebranded + device-bridge Electron app actually typechecks, its
-# unit tests pass, and it packages — before a PR touching ui/desktop merges.
+# Proves the rebranded + device-bridge Electron app typechecks, its unit tests
+# pass, it packages WITH its Rust engine (goosed) staged, and the packaged app
+# actually boots + spawns goosed — before a PR touching ui/desktop merges.
+# `pnpm run package` alone bundles only the JS side; without goosed staged the
+# shipped app dies at launch with "Goosed binary not found". So this gate builds
+# goose-server, stages it into the bundle, then headless-smoke-launches it.
 # Runs on the ff-france self-hosted runner (lnlockly/* convention — never
-# ubuntu-latest, which is billing-blocked). The toolchain is the repo's own
-# hermit pin (node 24.10.0 + pnpm 10.30.3), so it matches package.json engines.
+# ubuntu-latest, which is billing-blocked). Toolchain = the repo's hermit pin
+# (rust 1.92 + node 24.10.0 + pnpm 10.30.3).
 name: Desktop CI
 
 on:
@@ -20,18 +24,26 @@ concurrency:
 
 jobs:
   build-gate:
-    name: typecheck + test + package
+    name: typecheck + test + package + boot
     runs-on: [self-hosted, ff-france]
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Activate hermit toolchain (node 24 + pnpm)
+      - name: Activate hermit toolchain (rust 1.92 + node 24 + pnpm)
         run: |
           source ./bin/activate-hermit
+          echo "CARGO_HOME=$CARGO_HOME" >> "$GITHUB_ENV"
+          echo "RUSTUP_HOME=$RUSTUP_HOME" >> "$GITHUB_ENV"
           node --version
           pnpm --version
+          cargo --version
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
+        with:
+          key: desktop-ci-goosed
 
       - name: Install deps (ui/desktop workspace)
         working-directory: ui/desktop
@@ -51,11 +63,65 @@ jobs:
           source ../../bin/activate-hermit
           pnpm run test:run
 
+      - name: Build goosed (Rust engine, portable features)
+        # The desktop only ever talks to the `flow` gateway, so local-inference
+        # (llama-cpp-sys-2 → needs clang C headers) is dead weight here. Build the
+        # lean engine — same crate the shipped bundle stages, minus local models.
+        env:
+          RUST_BACKTRACE: 1
+        run: |
+          source ./bin/activate-hermit
+          export TARGET="x86_64-unknown-linux-gnu"
+          rustup target add "$TARGET"
+          cargo build --release --target "$TARGET" -p goose-server \
+            --no-default-features --features portable-default,code-mode
+
+      - name: Stage goosed into the Electron folder
+        # extraResource ['src/bin', …] in forge.config.ts copies this into the
+        # packaged app at resources/bin/goosed — exactly where the app looks.
+        run: |
+          export TARGET="x86_64-unknown-linux-gnu"
+          mkdir -p ui/desktop/src/bin
+          cp "target/$TARGET/release/goosed" ui/desktop/src/bin/goosed
+          chmod +x ui/desktop/src/bin/goosed
+          ls -la ui/desktop/src/bin/goosed
+
       - name: Package (electron-forge, unsigned)
         working-directory: ui/desktop
         # No APPLE_TEAM_ID / WINDOWS_CERTIFICATE_FILE in env → forge skips
-        # signing + notarization (see forge.config.ts). This validates the
-        # rebrand (productName / bundle id / icons / makers) + the vite build.
+        # signing + notarization (see forge.config.ts). Validates the rebrand
+        # (productName / bundle id / icons / makers) + the vite build, and now
+        # bundles goosed (staged above).
         run: |
           source ../../bin/activate-hermit
           pnpm run package
+
+      - name: Smoke-launch (headless) — the packaged app must boot + spawn goosed
+        # The proof the gate exists for: a packaged app that can't start its
+        # engine is not shippable. Launch under xvfb, assert goosed is bundled,
+        # the app reaches the spawn stage (no "Goosed binary not found"), and a
+        # goosed process is actually running.
+        working-directory: ui/desktop
+        run: |
+          set -u
+          APP_DIR="$(ls -d "out/AgentFlow Desktop-linux-"* 2>/dev/null | head -1)"
+          if [ -z "$APP_DIR" ]; then echo "FAIL: packaged app dir not found under out/"; ls -la out || true; exit 1; fi
+          echo "app dir: $APP_DIR"
+          test -x "$APP_DIR/resources/bin/goosed" || { echo "FAIL: goosed not bundled at resources/bin/goosed"; exit 1; }
+          LOG="$(mktemp)"
+          xvfb-run -a "$APP_DIR/AgentFlow Desktop" --no-sandbox --disable-gpu >"$LOG" 2>&1 &
+          APP_PID=$!
+          sleep 25
+          status=0
+          if grep -q "Goosed binary not found" "$LOG"; then
+            echo "FAIL: app could not find goosed at launch"; status=1
+          fi
+          if ! pgrep -f "resources/bin/goosed" >/dev/null; then
+            echo "FAIL: goosed process did not spawn"; status=1
+          fi
+          if [ "$status" -eq 0 ]; then echo "OK: AgentFlow Desktop booted + goosed running"; fi
+          echo "----- app log (tail) -----"; tail -40 "$LOG" || true
+          pkill -f "resources/bin/goosed" 2>/dev/null || true
+          kill "$APP_PID" 2>/dev/null || true
+          pkill -f "AgentFlow Desktop" 2>/dev/null || true
+          exit "$status"

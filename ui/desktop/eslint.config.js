@@ -108,6 +108,12 @@ module.exports = [
         MediaTrackConstraints: 'readonly',
         Blob: 'readonly',
         FormData: 'readonly',
+        // Node + web-streaming globals used by the device-bridge (Mode B)
+        Buffer: 'readonly',
+        AbortSignal: 'readonly',
+        TextEncoder: 'readonly',
+        TextDecoder: 'readonly',
+        RequestInit: 'readonly',
       },
     },
     plugins: {

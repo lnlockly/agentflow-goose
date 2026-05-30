@@ -86,6 +86,18 @@ module.exports = {
       },
     },
     {
+      // One-click Mac install. Unsigned interim — Gatekeeper needs the user to
+      // right-click → Open (or the owner-gated signing path: APPLE_TEAM_ID set).
+      // Only runs on `make` on darwin; a Linux `package`/`make` skips it.
+      name: '@electron-forge/maker-dmg',
+      platforms: ['darwin'],
+      config: {
+        name: 'AgentFlow Desktop',
+        icon: 'src/images/icon.icns',
+        overwrite: true,
+      },
+    },
+    {
       name: '@electron-forge/maker-deb',
       config: {
         name: 'AgentFlow Desktop',
