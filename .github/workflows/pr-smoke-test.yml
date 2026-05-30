@@ -17,14 +17,31 @@ name: Live Provider Tests
 
 jobs:
   check-fork:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ff-france]
     # Skip entire workflow for fork PRs and dependabot PRs (they don't have access to secrets)
     if: github.actor != 'dependabot[bot]' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
+    outputs:
+      has_secrets: ${{ steps.secretcheck.outputs.has_secrets }}
     steps:
       - run: echo "Not a fork PR - proceeding with smoke tests"
+      # These upstream tests drive a live Anthropic provider. AgentFlow routes
+      # LLM only through the `flow` alias (never Anthropic direct), so the org
+      # has no ANTHROPIC_API_KEY secret — without this gate every same-repo PR
+      # goes red with a 401 and masks real regressions. Skip the provider jobs
+      # when the secret is absent; keep them rebaseable for upstream.
+      - id: secretcheck
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "has_secrets=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_secrets=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::ANTHROPIC_API_KEY absent — skipping live provider smoke tests."
+          fi
 
   changes:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ff-france]
     needs: check-fork
     outputs:
       code: ${{ steps.filter.outputs.code }}
@@ -46,9 +63,11 @@ jobs:
 
   build-binary:
     name: Build Binary
-    runs-on: ubuntu-latest
-    needs: changes
-    if: needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: [self-hosted, ff-france]
+    needs: [changes, check-fork]
+    # Gate the whole live-provider chain on the secret: the 4 downstream provider
+    # jobs `needs: build-binary`, so skipping this skips them all cleanly.
+    if: needs.check-fork.outputs.has_secrets == 'true' && (needs.changes.outputs.code == 'true' || github.event_name == 'workflow_dispatch')
     steps:
       - name: Checkout Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
@@ -85,8 +104,9 @@ jobs:
 
   smoke-tests:
     name: Smoke Tests
-    runs-on: ubuntu-latest
-    needs: build-binary
+    runs-on: [self-hosted, ff-france]
+    needs: [build-binary, check-fork]
+    if: needs.check-fork.outputs.has_secrets == 'true'
     steps:
       - name: Checkout Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
@@ -173,8 +193,9 @@ jobs:
 
   smoke-tests-code-exec:
     name: Smoke Tests (Code Execution)
-    runs-on: ubuntu-latest
-    needs: build-binary
+    runs-on: [self-hosted, ff-france]
+    needs: [build-binary, check-fork]
+    if: needs.check-fork.outputs.has_secrets == 'true'
     steps:
       - name: Checkout Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
@@ -216,8 +237,9 @@ jobs:
 
   compaction-tests:
     name: Compaction Tests
-    runs-on: ubuntu-latest
-    needs: build-binary
+    runs-on: [self-hosted, ff-france]
+    needs: [build-binary, check-fork]
+    if: needs.check-fork.outputs.has_secrets == 'true'
     steps:
       - name: Checkout Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
@@ -256,8 +278,9 @@ jobs:
 
   goosed-integration-tests:
     name: goose server HTTP integration tests
-    runs-on: ubuntu-latest
-    needs: build-binary
+    runs-on: [self-hosted, ff-france]
+    needs: [build-binary, check-fork]
+    if: needs.check-fork.outputs.has_secrets == 'true'
     steps:
       - name: Checkout Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
