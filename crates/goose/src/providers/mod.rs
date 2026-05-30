@@ -21,6 +21,7 @@ pub mod cursor_agent;
 pub mod databricks;
 pub mod databricks_auth;
 pub mod databricks_v2;
+pub mod detect;
 pub mod embedding;
 pub mod errors;
 pub mod formats;
