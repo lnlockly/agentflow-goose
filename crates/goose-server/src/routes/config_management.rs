@@ -19,6 +19,7 @@ use goose::providers::catalog::{
     ProviderTemplate,
 };
 use goose::providers::create_with_default_model;
+use goose::providers::detect::{detect_local_providers, DetectedProvider};
 use goose::providers::providers as get_providers;
 use goose::{
     agents::execute_commands, config::permission::PermissionLevel,
@@ -828,6 +829,14 @@ pub async fn get_provider_catalog_template(
     Ok(Json(template))
 }
 
+// Read-only: lists the local AI tools found on this machine (binary on PATH,
+// Ollama/LM Studio servers, env keys) so the desktop picker can offer them.
+// Not in the OpenAPI doc — the renderer calls it via the shared client; keeping
+// it out avoids the local-inference-gated schema regen.
+pub async fn get_detected_providers() -> Json<Vec<DetectedProvider>> {
+    Json(detect_local_providers().await)
+}
+
 #[utoipa::path(
     post,
     path = "/config/providers/{name}/oauth",
@@ -915,6 +924,7 @@ pub fn routes(state: Arc<AppState>) -> Router {
             post(get_provider_model_info),
         )
         .route("/config/provider-catalog", get(get_provider_catalog))
+        .route("/config/detected-providers", get(get_detected_providers))
         .route(
             "/config/provider-catalog/{id}",
             get(get_provider_catalog_template),

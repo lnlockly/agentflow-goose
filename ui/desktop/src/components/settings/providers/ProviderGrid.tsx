@@ -1,6 +1,7 @@
 import React, { memo, useMemo, useCallback, useState } from 'react';
 import { ProviderCard } from './subcomponents/ProviderCard';
 import CardContainer from './subcomponents/CardContainer';
+import DetectedProvidersSection from './DetectedProvidersSection';
 import ProviderConfigurationModal from './modal/ProviderConfigurationModal';
 import {
   DeclarativeProviderConfig,
@@ -285,6 +286,10 @@ function ProviderCards({
     : intl.formatMessage(i18n.addProviderTitle);
   return (
     <>
+      <DetectedProvidersSection
+        providers={providers}
+        onUse={handleProviderLaunchWithModelSelection}
+      />
       {providerCards}
       <Dialog open={showCustomProviderModal} onOpenChange={handleCloseModal}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
