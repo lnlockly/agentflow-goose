@@ -54,6 +54,9 @@ import {
   startDeviceBridge,
   flowGatewayEnvFromAuth,
   ensureAgentflowEngineExtensions,
+  loadAuth,
+  deviceBridgeEnabled,
+  flowLlmEnabled,
   type DeviceBridge,
 } from './device-bridge';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
@@ -66,13 +69,15 @@ function shouldSetupUpdater(): boolean {
 }
 
 // Device-bridge (Mode B): the website drives the local goosed exactly like the
-// retired agentflow-computer-mcp daemon. Gated behind FF_DEVICE_BRIDGE=1 until a
-// packaged cabinet-dispatch run verifies it end-to-end (plan P2/P5 cutover).
+// retired agentflow-computer-mcp daemon. Default-on when ~/.agentflow/auth.json
+// is enrolled (proven live by a real Mac round-trip); opt out with
+// FF_DEVICE_BRIDGE=0 to pin the stock-goose path.
 let deviceBridge: DeviceBridge | null = null;
 let activeGoosed: { baseUrl: string; secret: string; workingDir: string } | null = null;
 
 function ensureDeviceBridge(): void {
-  if (process.env.FF_DEVICE_BRIDGE !== '1' || deviceBridge) return;
+  if (deviceBridge) return;
+  if (!deviceBridgeEnabled(process.env.FF_DEVICE_BRIDGE, loadAuth())) return;
   deviceBridge = startDeviceBridge({
     version: app.getVersion(),
     goosed: () => activeGoosed,
@@ -850,17 +855,20 @@ const createChat = async (app: App, options: CreateChatOptions = {}) => {
   }
 
   // Engine wiring (P3): route the local goosed through the AgentFlow `flow`
-  // gateway when the machine has an AgentFlow key. Gated FF_FLOW_LLM=1 until a
-  // packaged build verifies it against the gateway; a keyless standalone launch
-  // keeps the user's own provider (the gateway requires an af_live_* key).
-  const flowEnv =
-    process.env.FF_FLOW_LLM === '1' ? flowGatewayEnvFromAuth() : null;
+  // gateway when the machine has an AgentFlow key. Default-on so a double-clicked
+  // packaged app injects the key from auth.json with no env var; opt out with
+  // FF_FLOW_LLM=0. A keyless standalone launch keeps the user's own provider
+  // because flowGatewayEnvFromAuth() returns null (the gateway requires an
+  // af_live_* key).
+  const flowGatewayEnv = flowGatewayEnvFromAuth();
+  const useFlowLlm = flowLlmEnabled(process.env.FF_FLOW_LLM, flowGatewayEnv !== null);
+  const flowEnv = useFlowLlm ? flowGatewayEnv : null;
   if (flowEnv) log.info('[engine] routing goosed through the AgentFlow flow gateway');
 
   // Engine extensions (P3.5): ensure computercontroller (GUI) + af_* MCP are
   // enabled in goose config before goosed starts. Merge-only (never clobbers a
   // user's config.yaml). Same gate as the flow LLM wiring.
-  if (process.env.FF_FLOW_LLM === '1') {
+  if (useFlowLlm) {
     try {
       const added = ensureAgentflowEngineExtensions(
         app.isPackaged ? process.resourcesPath : undefined

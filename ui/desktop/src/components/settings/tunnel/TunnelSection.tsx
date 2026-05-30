@@ -49,7 +49,7 @@ const i18n = defineMessages({
   },
   previewDescription: {
     id: 'tunnelSection.previewDescription',
-    defaultMessage: 'Enable remote access to goose from mobile devices using secure tunneling.',
+    defaultMessage: 'Enable remote access to AgentFlow from mobile devices using secure tunneling.',
   },
   getIosApp: {
     id: 'tunnelSection.getIosApp',
@@ -97,7 +97,7 @@ const i18n = defineMessages({
   },
   qrCodeInstructions: {
     id: 'tunnelSection.qrCodeInstructions',
-    defaultMessage: 'Scan this QR code with the goose mobile app. Do not share this code with anyone else as it is for your personal access.',
+    defaultMessage: 'Scan this QR code with the AgentFlow mobile app. Do not share this code with anyone else as it is for your personal access.',
   },
   connectionDetails: {
     id: 'tunnelSection.connectionDetails',
@@ -117,11 +117,11 @@ const i18n = defineMessages({
   },
   downloadIosApp: {
     id: 'tunnelSection.downloadIosApp',
-    defaultMessage: 'Download goose iOS App',
+    defaultMessage: 'Download AgentFlow iOS App',
   },
   appStoreQrInstructions: {
     id: 'tunnelSection.appStoreQrInstructions',
-    defaultMessage: 'Scan this QR code with your iPhone camera to install the goose mobile app from the App Store',
+    defaultMessage: 'Scan this QR code with your iPhone camera to install the AgentFlow mobile app from the App Store',
   },
   openInAppStore: {
     id: 'tunnelSection.openInAppStore',
