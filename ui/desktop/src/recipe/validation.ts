@@ -152,6 +152,6 @@ export function getRecipeJsonSchema() {
     title: resolvedSchema.title || 'Recipe',
     description:
       resolvedSchema.description ||
-      'A Recipe represents a personalized, user-generated agent configuration that defines specific behaviors and capabilities within the Goose system.',
+      'A Recipe represents a personalized, user-generated agent configuration that defines specific behaviors and capabilities within the AgentFlow system.',
   };
 }

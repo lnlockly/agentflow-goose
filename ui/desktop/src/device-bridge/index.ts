@@ -18,6 +18,7 @@ import type { TaskRunner } from './types';
 export { DeviceBridge } from './wsBridge';
 export * from './types';
 export { loadAuth, saveAuth, isEnrolled, buildConnectHeaders, apiBase } from './auth';
+export { flowLlmEnabled, deviceBridgeEnabled, isOptedOut } from './gating';
 export { runTaskOnGoosed, parseSseChunk } from './goosedDispatch';
 export { fetchQueuedTasks } from './queuedTasks';
 export * from './engineConfig';

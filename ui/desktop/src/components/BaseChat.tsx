@@ -415,7 +415,7 @@ export default function BaseChat({
             >
               <Goose className="size-5 goose-icon-animation" />
               <span className="text-sm leading-none text-text-secondary -translate-y-px">
-                goose
+                AgentFlow
               </span>
             </a>
             <EnvironmentBadge className="translate-y-px" />
